@@ -21,3 +21,6 @@ def get_project_goal():
             return jsonify({"goal": None})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+    
+    

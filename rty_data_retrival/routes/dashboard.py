@@ -90,7 +90,151 @@ def get_der_details_for_station(model_name, station, station_type, start_date, e
 
 @dashboard_bp.route('/')
 def index():
-    return render_template('index.html')
+    current_time = datetime.now().strftime('%H:%M')
+    try:
+        token = get_token()
+        projects = get_project_list(token)
+        
+        # Get today's data from 08:00AM to now
+        now = datetime.now()
+        start = now.replace(hour=8, minute=0, second=0, microsecond=0)
+        
+        # Get FPY data for all projects
+        fpy_data_raw = get_fpy(token, projects, start, now)
+        
+        # Get all models from database to filter out 2G models
+        db_models = {model.model_name: model.technology for model in ModelDescription.query.all()}
+        
+        # Initialize counters
+        total_pcurr_input = 0
+        total_rqc2_good = 0
+        valid_rty_count = 0
+        rty_sum = 0
+        
+        # Process each record
+        for record in fpy_data_raw:
+            project = record.get('project', '')
+            station = record.get('station', '')
+            technology = db_models.get(project, '')
+            
+            # Skip 2G models
+            if technology == '2G':
+                continue
+                
+            # Extract values
+            input_qty = int(record.get('inPut', 0))
+            pass_qty = int(record.get('pass', 0))
+            rty_val = float(str(record.get('rty', '0')).replace('%', '')) if record.get('rty') else 0
+            
+            # Accumulate PCURR input
+            if station == 'PCURR':
+                total_pcurr_input += input_qty
+                
+            # Accumulate RQC2 good qty
+            if station == 'RQC2':
+                total_rqc2_good += pass_qty
+                
+            # Accumulate RTY for average calculation
+            if rty_val > 0:
+                valid_rty_count += 1
+                rty_sum += rty_val
+        
+        # Calculate average RTY
+        avg_rty = (rty_sum / valid_rty_count) if valid_rty_count > 0 else 0
+        
+        # Get active projects count (excluding 2G)
+        active_projects = len([p for p in projects if db_models.get(p, '') != '2G'])
+        
+        # Prepare stats for template
+        stats = {
+            'total_pcurr_input': total_pcurr_input,
+            'total_rqc2_good': total_rqc2_good,
+            'overall_rty': f"{avg_rty:.2f}%",
+            'active_projects': active_projects
+        }
+        
+        return render_template('index.html', stats=stats, current_time=current_time)
+    except Exception as e:
+        current_time = datetime.now().strftime('%H:%M')
+        return render_template('errors/500.html', error=str(e), current_time=current_time)
+    
+
+@dashboard_bp.route('/home')
+def home():
+    current_time = datetime.now().strftime('%H:%M')
+    return render_template('home.html', current_time=current_time)
+
+
+@dashboard_bp.route('/custom-dashboard')
+@login_required
+def custom_dashboard():
+    current_time = datetime.now().strftime('%H:%M')
+    try:
+        token = get_token()
+        projects = get_project_list(token)
+        
+        # Get today's data from 08:00AM to now
+        now = datetime.now()
+        start = now.replace(hour=8, minute=0, second=0, microsecond=0)
+        
+        # Get FPY data for all projects
+        fpy_data_raw = get_fpy(token, projects, start, now)
+        
+        # Get all models from database to filter out 2G models
+        db_models = {model.model_name: model.technology for model in ModelDescription.query.all()}
+        
+        # Initialize counters
+        total_pcurr_input = 0
+        total_rqc2_good = 0
+        valid_rty_count = 0
+        rty_sum = 0
+        
+        # Process each record
+        for record in fpy_data_raw:
+            project = record.get('project', '')
+            station = record.get('station', '')
+            technology = db_models.get(project, '')
+            
+            # Skip 2G models
+            if technology == '2G':
+                continue
+                
+            # Extract values
+            input_qty = int(record.get('inPut', 0))
+            pass_qty = int(record.get('pass', 0))
+            rty_val = float(str(record.get('rty', '0')).replace('%', '')) if record.get('rty') else 0
+            
+            # Accumulate PCURR input
+            if station == 'PCURR':
+                total_pcurr_input += input_qty
+                
+            # Accumulate RQC2 good qty
+            if station == 'RQC2':
+                total_rqc2_good += pass_qty
+                
+            # Accumulate RTY for average calculation
+            if rty_val > 0:
+                valid_rty_count += 1
+                rty_sum += rty_val
+        
+        # Calculate average RTY
+        avg_rty = (rty_sum / valid_rty_count) if valid_rty_count > 0 else 0
+        
+        # Get active projects count (excluding 2G)
+        active_projects = len([p for p in projects if db_models.get(p, '') != '2G'])
+        
+        # Prepare stats for template
+        stats = {
+            'total_pcurr_input': total_pcurr_input,
+            'total_rqc2_good': total_rqc2_good,
+            'overall_rty': f"{avg_rty:.2f}%",
+            'active_projects': active_projects
+        }
+        
+        return render_template("dashboard/custom_dashboard.html", stats=stats, current_time=current_time)
+    except Exception as e:
+        current_time = datetime.now().strftime('%H:%M')
+        return render_template('errors/500.html', error=str(e), current_time=current_time)
 
 @dashboard_bp.route('/auto-data')
 @login_required

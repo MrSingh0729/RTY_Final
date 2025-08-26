@@ -19,7 +19,7 @@ def login():
                 from app import User
                 user = User(username)
                 login_user(user)
-                return redirect(url_for('dashboard.index'))
+                return redirect(url_for('dashboard.home'))
         except Exception as e:
             error = "Invalid username or password"
     

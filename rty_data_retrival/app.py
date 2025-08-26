@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_file, jsonify, Blueprint
+from flask import Flask, render_template, request, send_file, jsonify, Blueprint, redirect, url_for
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 import pandas as pd
 import io
@@ -86,6 +86,11 @@ def page_not_found(e):
 def internal_server_error(e):
     current_time = datetime.now().strftime('%H:%M')
     return render_template('errors/500.html', error=str(e), current_time=current_time), 500
+
+
+@app.route('/')
+def root():
+    return redirect(url_for('dashboard.home'))
 
 # Main entry point
 if __name__ == '__main__':
