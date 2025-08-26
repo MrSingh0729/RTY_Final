@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center py-5">
+            <h1 class="display-1">500</h1>
+            <h2>Server Error</h2>
+            <p class="lead">We're sorry, but something went wrong on our end.</p>
+            {% if error %}
+            <div class="alert alert-danger mt-3">
+                <strong>Error details:</strong> {{ error }}
+            </div>
+            {% endif %}
+            <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary mt-3">
+                <i class="fas fa-home me-2"></i>Go to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

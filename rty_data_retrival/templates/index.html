@@ -1,5 +1,403 @@
 {% extends "base.html" %}
+
 {% block content %}
-<h2>Welcome to the FPY Dashboard</h2>
-<p>Select a mode from the navigation bar above to begin.</p>
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">Dashboard Overview</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="#">Home</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
+                </ol>
+            </nav>
+        </div>
+        <div>
+            <button class="btn btn-primary" id="refresh-dashboard">
+                <i class="fas fa-sync-alt me-2"></i>Refresh Data
+            </button>
+        </div>
+    </div>
+    
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Overall RTY</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">92.5%</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Active Projects</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">24</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-project-diagram fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Issues Resolved</div>
+                            <div class="row no-gutters align-items-center">
+                                <div class="col-auto">
+                                    <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">18</div>
+                                </div>
+                                <div class="col">
+                                    <div class="progress progress-sm mr-2">
+                                        <div class="progress-bar bg-info" role="progressbar" style="width: 75%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending Tasks</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">7</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-comments fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <div class="col-xl-8 col-lg-7">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">RTY Trend</h6>
+                    <div class="dropdown no-arrow">
+                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+                            <div class="dropdown-header">Actions:</div>
+                            <a class="dropdown-item" href="#">Export Data</a>
+                            <a class="dropdown-item" href="#">Add to Report</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="#">Something else here</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <canvas id="rtyTrendChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-4 col-lg-5">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Project Distribution</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="projectDistributionChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3 mb-4">
+                            <a href="{{ url_for('dashboard.auto_data') }}" class="btn-action">
+                                <div class="icon-circle bg-primary">
+                                    <i class="fas fa-bolt text-white"></i>
+                                </div>
+                                <div class="mt-3">
+                                    <h5>Auto Data</h5>
+                                    <p class="text-muted">View real-time data</p>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-4">
+                            <a href="{{ url_for('dashboard.project_specific') }}" class="btn-action">
+                                <div class="icon-circle bg-success">
+                                    <i class="fas fa-project-diagram text-white"></i>
+                                </div>
+                                <div class="mt-3">
+                                    <h5>Project Specific</h5>
+                                    <p class="text-muted">Analyze by project</p>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-4">
+                            <a href="{{ url_for('dashboard.model_specific') }}" class="btn-action">
+                                <div class="icon-circle bg-info">
+                                    <i class="fas fa-cogs text-white"></i>
+                                </div>
+                                <div class="mt-3">
+                                    <h5>Model Specific</h5>
+                                    <p class="text-muted">Filter by model</p>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-4">
+                            <a href="#" class="btn-action">
+                                <div class="icon-circle bg-warning">
+                                    <i class="fas fa-file-export text-white"></i>
+                                </div>
+                                <div class="mt-3">
+                                    <h5>Export Reports</h5>
+                                    <p class="text-muted">Download data</p>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Activity</h6>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-primary"></div>
+                            <div class="timeline-content">
+                                <span class="timeline-time">10:30 AM</span>
+                                <h6 class="timeline-title">Project Alpha RTY updated</h6>
+                                <p class="timeline-text">RTY increased from 89.2% to 91.5%</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-success"></div>
+                            <div class="timeline-content">
+                                <span class="timeline-time">9:15 AM</span>
+                                <h6 class="timeline-title">New issue resolved</h6>
+                                <p class="timeline-text">Station 3 NTF issue has been resolved</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-warning"></div>
+                            <div class="timeline-content">
+                                <span class="timeline-time">Yesterday</span>
+                                <h6 class="timeline-title">Weekly report generated</h6>
+                                <p class="timeline-text">Weekly performance report is now available</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Top Performing Projects</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Project</th>
+                                    <th>RTY</th>
+                                    <th>Trend</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Project X</td>
+                                    <td>96.8%</td>
+                                    <td><i class="fas fa-arrow-up text-success"></i></td>
+                                    <td><span class="badge bg-success">Excellent</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Project Y</td>
+                                    <td>94.2%</td>
+                                    <td><i class="fas fa-arrow-up text-success"></i></td>
+                                    <td><span class="badge bg-success">Good</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Project Z</td>
+                                    <td>91.5%</td>
+                                    <td><i class="fas fa-minus text-warning"></i></td>
+                                    <td><span class="badge bg-warning">Average</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Project A</td>
+                                    <td>89.7%</td>
+                                    <td><i class="fas fa-arrow-down text-danger"></i></td>
+                                    <td><span class="badge bg-danger">Needs Attention</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Modal -->
+<div class="modal fade" id="loadingModal" tabindex="-1" aria-labelledby="loadingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-body text-center">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p>Refreshing data, please wait...</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // RTY Trend Chart
+        const rtyTrendCtx = document.getElementById('rtyTrendChart').getContext('2d');
+        const rtyTrendChart = new Chart(rtyTrendCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                datasets: [{
+                    label: 'RTY %',
+                    data: [88, 89, 90, 89.5, 91, 90.5, 91.5, 92, 91.8, 92.3, 92.1, 92.5],
+                    backgroundColor: 'rgba(78, 115, 223, 0.05)',
+                    borderColor: 'rgba(78, 115, 223, 1)',
+                    pointBackgroundColor: 'rgba(78, 115, 223, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(78, 115, 223, 1)',
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        min: 85,
+                        max: 100,
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.parsed.y + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Project Distribution Chart
+        const projectDistributionCtx = document.getElementById('projectDistributionChart').getContext('2d');
+        const projectDistributionChart = new Chart(projectDistributionCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Project A', 'Project B', 'Project C', 'Project D', 'Others'],
+                datasets: [{
+                    data: [30, 25, 20, 15, 10],
+                    backgroundColor: [
+                        'rgba(78, 115, 223, 0.8)',
+                        'rgba(28, 200, 138, 0.8)',
+                        'rgba(54, 185, 204, 0.8)',
+                        'rgba(255, 193, 7, 0.8)',
+                        'rgba(231, 74, 59, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(78, 115, 223, 1)',
+                        'rgba(28, 200, 138, 1)',
+                        'rgba(54, 185, 204, 1)',
+                        'rgba(255, 193, 7, 1)',
+                        'rgba(231, 74, 59, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+        
+        // Update last updated time
+        function updateLastUpdatedTime() {
+            const now = new Date();
+            const timeString = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+            document.getElementById('last-updated').textContent = timeString;
+        }
+        
+        updateLastUpdatedTime();
+        setInterval(updateLastUpdatedTime, 60000); // Update every minute
+        
+        // Refresh dashboard button
+        document.getElementById('refresh-dashboard').addEventListener('click', function() {
+            const loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
+            loadingModal.show();
+            
+            // Simulate data refresh
+            setTimeout(function() {
+                location.reload();
+            }, 1500);
+        });
+    });
+</script>
 {% endblock %}
