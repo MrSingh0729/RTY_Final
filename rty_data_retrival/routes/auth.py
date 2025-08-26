@@ -1,9 +1,9 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required, current_user
 from config import Config
-
+ 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
-
+ 
 # User class for authentication
 class User:
     def __init__(self, id):
@@ -20,7 +20,7 @@ class User:
     
     def get_id(self):
         return self.id
-
+ 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -37,7 +37,7 @@ def login():
             return render_template('auth/login.html', error='Invalid credentials')
     
     return render_template('auth/login.html')
-
+ 
 @auth_bp.route('/logout')
 @login_required
 def logout():

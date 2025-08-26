@@ -63,21 +63,32 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Initialize DataTables with common options
-    const dataTables = document.querySelectorAll('table[id$="Table"]');
-    dataTables.forEach(function(table) {
-        $(table).DataTable({
-            responsive: true,
-            pageLength: 10,
-            lengthMenu: [ [10, 25, 50, 100], [10, 25, 50, 100] ],
-            dom: '<"row"<"col-sm-6"l><"col-sm-6"f>>' +
-                 '<"row"<"col-sm-12"tr>>' +
-                 '<"row"<"col-sm-5"i><"col-sm-7"p>>',
-            language: {
-                search: "_INPUT_",
-                searchPlaceholder: "Search records..."
+    function initDataTables() {
+        // Check if DataTables are already initialized and destroy them
+        const dataTables = document.querySelectorAll('table[id$="Table"]');
+        dataTables.forEach(function(table) {
+            if ($.fn.DataTable.isDataTable(table)) {
+                $(table).DataTable().destroy();
             }
+            
+            $(table).DataTable({
+                responsive: true,
+                pageLength: 10,
+                lengthMenu: [ [10, 25, 50, 100], [10, 25, 50, 100] ],
+                dom: '<"row"<"col-sm-6"l><"col-sm-6"f>>' +
+                     '<"row"<"col-sm-12"tr>>' +
+                     '<"row"<"col-sm-5"i><"col-sm-7"p>>',
+                language: {
+                    search: "_INPUT_",
+                    searchPlaceholder: "Search records..."
+                },
+                destroy: true
+            });
         });
-    });
+    }
+    
+    // Initialize DataTables on page load
+    initDataTables();
     
     // Handle export buttons
     const exportButtons = document.querySelectorAll('.export-btn');

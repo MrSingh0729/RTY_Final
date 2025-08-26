@@ -42,6 +42,11 @@ class User:
 def load_user(user_id):
     return User(user_id)
 
+# Add context processor to make datetime available to templates
+@app.context_processor
+def inject_datetime():
+    return dict(datetime=datetime)
+
 # Register Blueprints
 app.register_blueprint(auth_bp)
 app.register_blueprint(dashboard_bp)
