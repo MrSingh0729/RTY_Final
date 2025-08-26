@@ -1,11 +1,7 @@
-def init_db(force=False):
-    """Initialize database data
-    
-    Args:
-        force (bool): If True, will clear existing data and reinitialize
-    """
+def init_db():
+    """Initialize database data"""
     try:
-        from models import ModelDescription, ProjectGoal
+        from models import ModelDescription, ProjectGoal, FPYAutoData
         from extensions import db
         
         print("Initializing database data...")
@@ -13,14 +9,6 @@ def init_db(force=False):
         # Check model data
         model_count = ModelDescription.query.count()
         print(f"Current model count: {model_count}")
-        
-        # If force is True, delete all existing data
-        if force:
-            print("Force reinitialization enabled. Deleting existing data...")
-            ModelDescription.query.delete()
-            ProjectGoal.query.delete()
-            db.session.commit()
-            model_count = 0
         
         if model_count == 0:
             print("Importing model data...")
@@ -226,11 +214,4 @@ def init_db(force=False):
         raise
 
 if __name__ == '__main__':
-    import argparse
-    
-    parser = argparse.ArgumentParser(description='Initialize database with model and project goal data')
-    parser.add_argument('--force', action='store_true', help='Force reinitialization by deleting existing data')
-    
-    args = parser.parse_args()
-    
-    init_db(force=args.force)
+    init_db()

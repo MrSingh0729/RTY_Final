@@ -19,7 +19,7 @@
             </button>
         </div>
     </div>
-    
+
     <!-- Data Info Card -->
     <div class="card shadow mb-4">
         <div class="card-header py-3">
@@ -28,7 +28,8 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-md-6">
-                    <p><strong>Live data from today 08:00 → <span id="current-time">{{ current_time }}</span></strong></p>
+                    <p><strong>Live data from today 08:00 → <span id="current-time">{{ current_time }}</span></strong>
+                    </p>
                     <p>This report shows real-time First Pass Yield (FPY) data for all active projects.</p>
                 </div>
                 <div class="col-md-6 text-end">
@@ -47,16 +48,18 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Data Table -->
     <div class="card shadow mb-4">
         <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
             <h6 class="m-0 font-weight-bold text-primary">FPY Data</h6>
             <div class="dropdown no-arrow">
-                <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+                <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown"
+                    aria-expanded="false">
                     <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
                 </a>
-                <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+                <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                    aria-labelledby="dropdownMenuLink">
                     <div class="dropdown-header">Actions:</div>
                     <a class="dropdown-item" href="#" id="toggle-columns">Toggle Columns</a>
                     <a class="dropdown-item" href="#" id="reset-table">Reset View</a>
@@ -77,8 +80,8 @@
                     <tbody>
                         {% for row in data %}
                         <tr>
-                            {% for val in row.values() %}
-                            <td>{{ val }}</td>
+                            {% for col in data[0].keys() %}
+                            <td>{{ row[col] }}</td>
                             {% endfor %}
                         </tr>
                         {% endfor %}
@@ -93,14 +96,15 @@
                     </div>
                     <div>
                         <h5 class="alert-heading">No Data Available</h5>
-                        <p class="mb-0">There is no current data available to display. Please try refreshing the data or check back later.</p>
+                        <p class="mb-0">There is no current data available to display. Please try refreshing the data or
+                            check back later.</p>
                     </div>
                 </div>
             </div>
             {% endif %}
         </div>
     </div>
-    
+
     <!-- Summary Statistics -->
     <div class="row">
         <div class="col-xl-3 col-md-6 mb-4">
@@ -118,7 +122,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card border-left-success shadow h-100 py-2">
                 <div class="card-body">
@@ -134,7 +138,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card border-left-info shadow h-100 py-2">
                 <div class="card-body">
@@ -150,7 +154,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card border-left-warning shadow h-100 py-2">
                 <div class="card-body">
@@ -167,7 +171,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- RTY Performance Chart -->
     <div class="row">
         <div class="col-xl-12">
@@ -200,12 +204,12 @@
 
 {% block scripts %}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         // Initialize DataTable
         const table = $('#fpyTable').DataTable({
             responsive: true,
             pageLength: 20,
-            lengthMenu: [ [20, 50, 100, 200], [20, 50, 100, 200] ],
+            lengthMenu: [[20, 50, 100, 200], [20, 50, 100, 200]],
             dom: 'Bfrtip',
             buttons: [
                 'copy',
@@ -229,11 +233,11 @@
                 { targets: '_all', className: 'text-center' }
             ]
         });
-        
+
         // Calculate and display summary statistics
         function calculateStatistics() {
             const data = table.data().toArray();
-            
+
             if (data.length === 0) {
                 document.getElementById('total-projects').textContent = '0';
                 document.getElementById('avg-rty').textContent = '0%';
@@ -241,50 +245,50 @@
                 document.getElementById('failure-rate').textContent = '0%';
                 return;
             }
-            
+
             // Get unique projects
             const projects = new Set();
             let totalInput = 0;
             let totalPass = 0;
             let totalFail = 0;
-            
+
             data.forEach(row => {
                 projects.add(row[0]); // Assuming project is the first column
                 totalInput += parseInt(row[2]) || 0; // Assuming input is the third column
                 totalPass += parseInt(row[3]) || 0; // Assuming pass is the fourth column
                 totalFail += parseInt(row[4]) || 0; // Assuming fail is the fifth column
             });
-            
+
             // Calculate statistics
             const totalProjects = projects.size;
             const avgRty = totalInput > 0 ? ((totalPass / totalInput) * 100).toFixed(2) + '%' : '0%';
             const failureRate = totalInput > 0 ? ((totalFail / totalInput) * 100).toFixed(2) + '%' : '0%';
-            
+
             // Update UI
             document.getElementById('total-projects').textContent = totalProjects;
             document.getElementById('avg-rty').textContent = avgRty;
             document.getElementById('total-input').textContent = totalInput.toLocaleString();
             document.getElementById('failure-rate').textContent = failureRate;
-            
+
             // Create RTY Performance Chart
             createRtyPerformanceChart(data);
         }
-        
+
         // Create RTY Performance Chart
         function createRtyPerformanceChart(data) {
             const ctx = document.getElementById('rtyPerformanceChart').getContext('2d');
-            
+
             // Extract project names and RTY values
             const projects = [];
             const rtyValues = [];
             const goalValues = [];
-            
+
             const projectMap = new Map();
-            
+
             data.forEach(row => {
                 const project = row[0];
                 const rty = parseFloat(row[8].replace('%', '')) || 0; // Assuming RTY is the 9th column
-                
+
                 if (projectMap.has(project)) {
                     // If project already exists, average the RTY values
                     const existingData = projectMap.get(project);
@@ -294,25 +298,25 @@
                     projectMap.set(project, { total: rty, count: 1 });
                 }
             });
-            
+
             projectMap.forEach((data, project) => {
                 projects.push(project);
                 rtyValues.push((data.total / data.count).toFixed(2));
                 goalValues.push(90); // Assuming goal is 90%
             });
-            
+
             // If we have too many projects, only show the top 10
             if (projects.length > 10) {
                 projects.length = 10;
                 rtyValues.length = 10;
                 goalValues.length = 10;
             }
-            
+
             // Destroy existing chart if it exists
             if (window.rtyPerformanceChartInstance) {
                 window.rtyPerformanceChartInstance.destroy();
             }
-            
+
             // Create new chart
             window.rtyPerformanceChartInstance = new Chart(ctx, {
                 type: 'bar',
@@ -343,7 +347,7 @@
                             beginAtZero: true,
                             max: 100,
                             ticks: {
-                                callback: function(value) {
+                                callback: function (value) {
                                     return value + '%';
                                 }
                             }
@@ -352,7 +356,7 @@
                     plugins: {
                         tooltip: {
                             callbacks: {
-                                label: function(context) {
+                                label: function (context) {
                                     return context.dataset.label + ': ' + context.parsed.y + '%';
                                 }
                             }
@@ -361,54 +365,54 @@
                 }
             });
         }
-        
+
         // Calculate statistics on page load
         calculateStatistics();
-        
+
         // Refresh button functionality
-        document.getElementById('refresh-btn').addEventListener('click', function() {
+        document.getElementById('refresh-btn').addEventListener('click', function () {
             const loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
             loadingModal.show();
-            
+
             // Simulate data refresh
-            setTimeout(function() {
+            setTimeout(function () {
                 location.reload();
             }, 1500);
         });
-        
+
         // Export buttons functionality
-        document.getElementById('export-csv').addEventListener('click', function() {
+        document.getElementById('export-csv').addEventListener('click', function () {
             table.button('.buttons-csv').trigger();
         });
-        
-        document.getElementById('export-excel').addEventListener('click', function() {
+
+        document.getElementById('export-excel').addEventListener('click', function () {
             table.button('.buttons-excel').trigger();
         });
-        
-        document.getElementById('export-pdf').addEventListener('click', function() {
+
+        document.getElementById('export-pdf').addEventListener('click', function () {
             table.button('.buttons-pdf').trigger();
         });
-        
+
         // Toggle columns functionality
-        document.getElementById('toggle-columns').addEventListener('click', function() {
+        document.getElementById('toggle-columns').addEventListener('click', function () {
             // This would open a modal to toggle column visibility
             alert('Column toggle functionality would be implemented here.');
         });
-        
+
         // Reset table functionality
-        document.getElementById('reset-table').addEventListener('click', function() {
+        document.getElementById('reset-table').addEventListener('click', function () {
             table.state.clear();
             table.ajax.reload();
             window.location.reload();
         });
-        
+
         // Update current time
         function updateCurrentTime() {
             const now = new Date();
             const timeString = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
             document.getElementById('current-time').textContent = timeString;
         }
-        
+
         updateCurrentTime();
         setInterval(updateCurrentTime, 60000); // Update every minute
     });

@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, send_file, jsonify, redirect, url_for
 from flask_login import login_required
 import pandas as pd
+from models import ModelDescription, ProjectGoal, FPYAutoData
 import io
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill
@@ -239,29 +240,61 @@ def custom_dashboard():
 @dashboard_bp.route('/auto-data')
 @login_required
 def auto_data():
+    current_time = datetime.now().strftime('%H:%M')
     try:
-        token = get_token()
-        projects = get_project_list(token)
-        fpy_data = get_fpy(token, projects)
-
-        # Define desired columns with PY
-        desired_columns = ["project", "station", "inPut", "pass", "fail", "notFail", "der", "ntf", "rty", "py"]
+        # Try to get data from the auto data table first
+        auto_data_records = FPYAutoData.query.all()
         
-        # Process data and add PY column
-        for row in fpy_data:
-            # Add PY column (empty for now)
-            row["py"] = ""
+        if auto_data_records:
+            # Convert database objects to dictionaries
+            desired_columns = ["project", "station", "inPut", "pass", "fail", "notFail", "der", "ntf", "rty", "py"]
+            data = []
             
-        filtered_data = [
-            {col: row.get(col, "") for col in desired_columns}
-            for row in fpy_data
-        ]
-
-        current_time = datetime.now().strftime('%H:%M')
-        return render_template('dashboard/auto_data.html', data=filtered_data, current_time=current_time)
+            for record in auto_data_records:
+                row = {
+                    "project": record.project,
+                    "station": record.station,
+                    "inPut": record.inPut,
+                    "pass": record.pass_qty,  # Map 'pass_qty' from DB to 'pass' in API
+                    "fail": record.fail,
+                    "notFail": record.notFail,
+                    "der": record.der,
+                    "ntf": record.ntf,
+                    "rty": record.rty,
+                    "py": record.py
+                }
+                data.append(row)
+            
+            # Get the last update time
+            last_updated = FPYAutoData.query.order_by(FPYAutoData.last_updated.desc()).first().last_updated
+            last_updated_str = last_updated.strftime('%Y-%m-%d %H:%M:%S')
+        else:
+            # If no data in auto data table, fetch fresh data
+            print("No auto data found, fetching fresh data...")
+            token = get_token()
+            projects = get_project_list(token)
+            fpy_data_raw = get_fpy(token, projects)
+            
+            # Process data and add PY column
+            desired_columns = ["project", "station", "inPut", "pass", "fail", "notFail", "der", "ntf", "rty", "py"]
+            data = []
+            
+            for row in fpy_data_raw:
+                # Add PY column (empty for now)
+                row["py"] = ""
+                data.append({col: row.get(col, "") for col in desired_columns})
+            
+            last_updated_str = "Just now"
+        
+        return render_template('dashboard/auto_data.html', 
+                               data=data, 
+                               current_time=current_time,
+                               last_updated=last_updated_str)
     except Exception as e:
         current_time = datetime.now().strftime('%H:%M')
         return render_template('errors/500.html', error=str(e), current_time=current_time)
+    
+
 
 @dashboard_bp.route('/project-specific', methods=['GET', 'POST'])
 @login_required

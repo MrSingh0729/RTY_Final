@@ -30,3 +30,18 @@ class FPYData(db.Model):
     rty = db.Column(db.Float)  # RTY
     py = db.Column(db.Float)  # PY
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+class FPYAutoData(db.Model):
+    __tablename__ = 'fpy_auto_data'
+    id = db.Column(db.Integer, primary_key=True)
+    project = db.Column(db.String(100), nullable=False)
+    station = db.Column(db.String(50), nullable=False)
+    inPut = db.Column(db.Integer, nullable=False)
+    pass_qty = db.Column(db.Integer, nullable=False)
+    fail = db.Column(db.Integer, nullable=False)
+    notFail = db.Column(db.Integer, nullable=False)
+    der = db.Column(db.Float)  # NG Rate
+    ntf = db.Column(db.Float)  # NDF Rate
+    rty = db.Column(db.Float)  # RTY
+    py = db.Column(db.Float)  # PY
+    last_updated = db.Column(db.DateTime, default=datetime.utcnow)
