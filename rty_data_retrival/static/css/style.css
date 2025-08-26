@@ -405,3 +405,27 @@ body {
     content: ">";
     color: #6c757d;
 }
+
+
+/* Handle empty tables */
+.dataTables_empty {
+    text-align: center;
+    padding: 20px;
+    font-style: italic;
+    color: #6c757d;
+}
+
+/* Ensure consistent column widths in analysis tables */
+.analysis-table th,
+.analysis-table td {
+    min-width: 100px;
+    max-width: 300px;
+    word-wrap: break-word;
+}
+
+/* Style for no data rows */
+.no-data-row {
+    text-align: center;
+    font-style: italic;
+    color: #6c757d;
+}

@@ -42,10 +42,10 @@ class User:
 def load_user(user_id):
     return User(user_id)
 
-# Add context processor to make datetime available to templates
+# Add context processor to make datetime and Config available to templates
 @app.context_processor
-def inject_datetime():
-    return dict(datetime=datetime)
+def inject_variables():
+    return dict(datetime=datetime, Config=Config)
 
 # Register Blueprints
 app.register_blueprint(auth_bp)
@@ -55,11 +55,13 @@ app.register_blueprint(api_bp)
 # Error Handlers
 @app.errorhandler(404)
 def page_not_found(e):
-    return render_template('errors/404.html'), 404
+    current_time = datetime.now().strftime('%H:%M')
+    return render_template('errors/404.html', current_time=current_time), 404
 
 @app.errorhandler(500)
 def internal_server_error(e):
-    return render_template('errors/500.html', error=str(e)), 500
+    current_time = datetime.now().strftime('%H:%M')
+    return render_template('errors/500.html', error=str(e), current_time=current_time), 500
 
 # Main entry point
 if __name__ == '__main__':
