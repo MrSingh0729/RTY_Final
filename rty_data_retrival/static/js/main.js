@@ -15,16 +15,16 @@ document.addEventListener('DOMContentLoaded', function() {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
     
-    // Auto-hide alerts after 5 seconds
-    const alerts = document.querySelectorAll('.alert');
-    alerts.forEach(function(alert) {
-        setTimeout(function() {
-            alert.classList.add('fade');
-            setTimeout(function() {
-                alert.remove();
-            }, 500);
-        }, 5000);
-    });
+    // // Auto-hide alerts after 5 seconds
+    // const alerts = document.querySelectorAll('.alert');
+    // alerts.forEach(function(alert) {
+    //     setTimeout(function() {
+    //         alert.classList.add('fade');
+    //         setTimeout(function() {
+    //             alert.remove();
+    //         }, 500);
+    //     }, 5000);
+    // });
     
     // Format numbers with commas
     function formatNumber(num) {

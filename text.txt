@@ -1,1198 +1,858 @@
-static/style.css:
+model_specific.html:
 
-
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f4f6f8;
-    margin: 0;
-    padding: 0;
-}
-
-header {
-    background-color: #003366;
-    color: white;
-    padding: 20px;
-}
-
-header h1 {
-    margin: 0;
-    font-size: 24px;
-}
-
-nav {
-    margin-top: 10px;
-}
-
-nav a {
-    color: #ffffff;
-    text-decoration: none;
-    margin-right: 15px;
-    font-weight: bold;
-}
-
-nav a:hover {
-    text-decoration: underline;
-}
-
-.container {
-    max-width: 1200px;
-    margin: auto;
-    padding: 30px;
-}
-
-h2 {
-    color: #003366;
-    margin-bottom: 10px;
-}
-
-.timestamp {
-    font-size: 14px;
-    color: #555;
-    margin-bottom: 20px;
-}
-
-.alert {
-    padding: 15px;
-    border-radius: 5px;
-    margin-top: 20px;
-}
-
-.alert.warning {
-    background-color: #fff3cd;
-    color: #856404;
-    border: 1px solid #ffeeba;
-}
-
-@media screen and (max-width: 768px) {
-    .container {
-        padding: 15px;
-    }
-
-    nav a {
-        display: block;
-        margin-bottom: 8px;
-    }
-}
-
-
-/* Topbar layout */
-.topbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #003366;
-    color: white;
-    padding: 15px 30px;
-    flex-wrap: wrap;
-}
-
-.logo h1 {
-    margin: 0;
-    font-size: 22px;
-}
-
-.nav-links {
-    display: flex;
-    gap: 15px;
-    flex-wrap: wrap;
-}
-
-.nav-links a {
-    color: #ffffff;
-    text-decoration: none;
-    font-weight: bold;
-}
-
-.nav-links a:hover {
-    text-decoration: underline;
-}
-
-/* Optional: make nav collapse on small screens */
-@media screen and (max-width: 768px) {
-    .topbar {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .nav-links {
-        margin-top: 10px;
-        flex-direction: column;
-        gap: 8px;
-    }
-}
-
-
-.form-section {
-    margin-bottom: 30px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    align-items: center;
-}
-
-.form-section label {
-    font-weight: bold;
-    color: #003366;
-}
-
-.form-section select,
-.form-section input {
-    padding: 8px;
-    font-size: 14px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-
-.form-section button {
-    padding: 8px 16px;
-    background-color: #003366;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.form-section button:hover {
-    background-color: #0055aa;
-}
-
-
-.export-bar {
-    display: flex;
-    justify-content: flex-end;
-    margin-bottom: 10px;
-}
-
-.dropdown {
-    position: relative;
-    display: inline-block;
-}
-
-.dropbtn {
-    background-color: #0078d4;
-    color: white;
-    padding: 8px 16px;
-    font-size: 14px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.dropdown-content {
-    display: none;
-    position: absolute;
-    right: 0;
-    background-color: #f9f9f9;
-    min-width: 160px;
-    box-shadow: 0px 4px 8px rgba(0,0,0,0.1);
-    z-index: 1;
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-.dropdown-content a {
-    color: black;
-    padding: 10px 16px;
-    text-decoration: none;
-    display: block;
-    font-size: 14px;
-}
-
-.dropdown-content a:hover {
-    background-color: #f1f1f1;
-}
-
-.dropdown:hover .dropdown-content {
-    display: block;
-}
-
-.dropdown:hover .dropbtn {
-    background-color: #005a9e;
-}
-
-
-
-templates/auto_data.html:
 
 {% extends "base.html" %}
+
 {% block content %}
-<div class="container">
-    <h2>⚡ Auto FPY Report</h2>
-    <p class="timestamp">Live data from today 08:00 → <strong>{{ current_time }}</strong></p>
-
-    {% if data %}
-    <table id="fpyTable" class="display nowrap" style="width:100%">
-        <thead>
-            <tr>
-                {% for col in data[0].keys() %}
-                <th>{{ col }}</th>
-                {% endfor %}
-            </tr>
-        </thead>
-        <tbody>
-            {% for row in data %}
-            <tr>
-                {% for val in row.values() %}
-                <td>{{ val }}</td>
-                {% endfor %}
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <div class="alert warning">
-        <strong>⚠ No current data available.</strong>
-    </div>
-    {% endif %}
-</div>
-
-<!-- DataTables CSS -->
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
-
-<!-- jQuery + DataTables JS -->
-<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-
-<!-- DataTables Buttons -->
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
-
-<!-- Excel Export -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-
-<!-- PDF Export -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
-
-<script>
-$(document).ready(function() {
-    $('#fpyTable').DataTable({
-        scrollX: true,
-        responsive: true,
-        pageLength: 20,
-        lengthMenu: [ [20, 50, 100, 200], [20, 50, 100, 200] ],
-        dom: 'Blfrtip',
-        buttons: [
-            'copy',
-            {
-                extend: 'csv',
-                title: 'FPY_Report'
-            },
-            {
-                extend: 'excel',
-                title: 'FPY_Report'
-            },
-            {
-                extend: 'pdf',
-                title: 'FPY_Report',
-                orientation: 'landscape',
-                pageSize: 'A4'
-            },
-            'print'
-        ]
-    });
-});
-</script>
-{% endblock %}
-
-
-
-templates/base.html:
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FPY Dashboard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-    <header class="topbar">
-        <div class="logo">
-            <h1>🏭 Factory FPY Dashboard</h1>
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">Model-Specific FPY Report</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Model Specific</li>
+                </ol>
+            </nav>
         </div>
-        <nav class="nav-links">
-            <a href="{{ url_for('index') }}">🏠 Home</a>
-            <a href="{{ url_for('auto_data') }}">⚡ Auto Data</a>
-            <a href="{{ url_for('project_specific') }}">🎯 Project Specific</a>
-            <a href="{{ url_for('model_specific') }}">🛠 Model Specific</a> <!-- ✅ New Link -->
-        </nav>
-    </header>
-    <hr>
-    <main>
-        {% block content %}{% endblock %}
-    </main>
-</body>
-</html>
-
-
-
-templates/index.html:
-
-
-{% extends "base.html" %}
-{% block content %}
-<h2>Welcome to the FPY Dashboard</h2>
-<p>Select a mode from the navigation bar above to begin.</p>
-{% endblock %}
-
-
-
-templates/model_specific.html:
-
-{% extends "base.html" %}
-{% block content %}
-<div class="container">
-    <h2>🛠️ Model-Specific FPY Report</h2>
-
-    <div class="form-bar">
-        <form method="POST" class="form-section">
-            <label for="model_name">Model Name:</label>
-            <input type="text" name="model_name" id="model_name" value="{{ selected_model }}" required>
-
-            <label for="station_type">Station Type:</label>
-            <select name="station_type" id="station_type">
-                <option value="BE" {% if station_type == "BE" %}selected{% endif %}>BE</option>
-                <option value="FT" {% if station_type == "FT" %}selected{% endif %}>FT</option>
-                <option value="ICT" {% if station_type == "ICT" %}selected{% endif %}>ICT</option>
-            </select>
-
-            <label for="start_date" title="You can type or pick from calendar">Start Date & Time:</label>
-            <input type="datetime-local" name="start_date" id="start_date" value="{{ start_date }}" required placeholder="YYYY-MM-DD HH:MM">
-
-            <label for="end_date" title="You can type or pick from calendar">End Date & Time:</label>
-            <input type="datetime-local" name="end_date" id="end_date" value="{{ end_date }}" required placeholder="YYYY-MM-DD HH:MM">
-
-            <label for="rty_goal">RTY Goal (%):</label>
-            <input type="number" step="0.1" name="rty_goal" id="rty_goal" value="{{ rty_goal }}" required>
-
-            <button type="submit">🔍 View Report</button>
-        </form>
-
-        {% if selected_model %}
-        <div class="dropdown">
-            <button class="dropbtn">📤 Export Model</button>
-            <div class="dropdown-content">
-                <a href="/export-excel-model?model_name={{ selected_model }}&station_type={{ station_type }}&start_date={{ start_date }}&end_date={{ end_date }}&rty_goal={{ rty_goal }}">Export as Excel</a>
-                <a href="/export-pdf-model?model_name={{ selected_model }}&station_type={{ station_type }}&start_date={{ start_date }}&end_date={{ end_date }}&rty_goal={{ rty_goal }}">Export as PDF</a>
-            </div>
+        <div>
+            <button class="btn btn-primary" id="refresh-btn">
+                <i class="fas fa-sync-alt me-2"></i>Refresh Data
+            </button>
         </div>
-        {% endif %}
     </div>
-
+    
+    <!-- Filter Form -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Model Selection</h6>
+        </div>
+        <div class="card-body">
+            <form method="POST" id="model-form">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="model_name" class="form-label">Model Name</label>
+                        <input type="text" class="form-control" name="model_name" id="model_name" value="{{ selected_model }}" required>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="station_type" class="form-label">Station Type</label>
+                        <select class="form-select" name="station_type" id="station_type">
+                            <option value="BE" {% if station_type == "BE" %}selected{% endif %}>BE</option>
+                            <option value="FT" {% if station_type == "FT" %}selected{% endif %}>FT</option>
+                            <option value="ICT" {% if station_type == "ICT" %}selected{% endif %}>ICT</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label for="start_date" class="form-label">Start Date</label>
+                        <input type="datetime-local" class="form-control" name="start_date" id="start_date" value="{{ start_date }}" required>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label for="end_date" class="form-label">End Date</label>
+                        <input type="datetime-local" class="form-control" name="end_date" id="end_date" value="{{ end_date }}" required>
+                    </div>
+                    <div class="col-md-1 mb-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label for="rty_goal" class="form-label">RTY Goal (%)</label>
+                        <input type="number" class="form-control" name="rty_goal" id="rty_goal" value="{{ rty_goal }}" step="0.1" min="0" max="100" required>
+                    </div>
+                    <div class="col-md-9 mb-3 d-flex align-items-end">
+                        {% if selected_model %}
+                        <div class="dropdown">
+                            <button class="btn btn-outline-primary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-file-export me-1"></i> Export Model
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="exportDropdown">
+                                <li><a class="dropdown-item" href="/export-excel-model?model_name={{ selected_model }}&station_type={{ station_type }}&start_date={{ start_date }}&end_date={{ end_date }}&rty_goal={{ rty_goal }}">Export as Excel</a></li>
+                                <li><a class="dropdown-item" href="/export-pdf-model?model_name={{ selected_model }}&station_type={{ station_type }}&start_date={{ start_date }}&end_date={{ end_date }}&rty_goal={{ rty_goal }}">Export as PDF</a></li>
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
     {% if selected_model and data %}
-        {% set actual_rty = data[0]["rty"] %}
-        {% if actual_rty %}
-            {% set actual_rty_val = actual_rty.replace('%', '') | float %}
-            {% if actual_rty_val < rty_goal %}
-                <div class="alert warning">
-                    ⚠ RTY Not Meeting Goal — Actual: {{ actual_rty_val }}%, Goal: {{ rty_goal }}%
+    <!-- Model Info Card -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Model: {{ selected_model }}</h6>
+            <div class="btn-group" role="group">
+                <a href="/export-excel-model?model_name={{ selected_model }}&station_type={{ station_type }}&start_date={{ start_date }}&end_date={{ end_date }}&rty_goal={{ rty_goal }}" class="btn btn-outline-primary">
+                    <i class="fas fa-file-excel me-1"></i> Excel
+                </a>
+                <a href="/export-pdf-model?model_name={{ selected_model }}&station_type={{ station_type }}&start_date={{ start_date }}&end_date={{ end_date }}&rty_goal={{ rty_goal }}" class="btn btn-outline-primary">
+                    <i class="fas fa-file-pdf me-1"></i> PDF
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    {% if data and "rty" in data[0] %}
+                    {% set actual_rty = data[0]["rty"] %}
+                    {% if actual_rty %}
+                    {% set actual_rty_val = actual_rty.replace('%', '') | float %}
+                    {% if actual_rty_val < rty_goal %}
+                    <div class="alert alert-warning" role="alert">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <i class="fas fa-exclamation-triangle fa-2x"></i>
+                            </div>
+                            <div>
+                                <h5 class="alert-heading">RTY Goal Not Met</h5>
+                                <p class="mb-0">Actual RTY: <strong>{{ actual_rty_val }}%</strong> | Goal: <strong>{{ rty_goal }}%</strong></p>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-success" role="alert">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <i class="fas fa-check-circle fa-2x"></i>
+                            </div>
+                            <div>
+                                <h5 class="alert-heading">RTY Goal Met</h5>
+                                <p class="mb-0">Actual RTY: <strong>{{ actual_rty_val }}%</strong> | Goal: <strong>{{ rty_goal }}%</strong></p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endif %}
+                    {% endif %}
                 </div>
-            {% else %}
-                <div class="alert success">
-                    ✅ RTY Goal Met — Actual: {{ actual_rty_val }}%, Goal: {{ rty_goal }}%
+                <div class="col-md-4">
+                    <div class="d-flex justify-content-center">
+                        <div class="position-relative" style="width: 150px; height: 150px;">
+                            <canvas id="rtyGauge"></canvas>
+                            <div class="position-absolute top-50 start-50 translate-middle text-center">
+                                <div class="h5 mb-0" id="gauge-value">{{ data[0].rty if data else '0%' }}</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            {% endif %}
-        {% endif %}
-    {% endif %}
-
-    {% if data %}
-    <table id="modelTable" class="display nowrap" style="width:100%">
-        <thead>
-            <tr>
-                {% for col in data[0].keys() %}
-                <th>{{ col }}</th>
-                {% endfor %}
-            </tr>
-        </thead>
-        <tbody>
-            {% for row in data %}
-            <tr>
-                {% for val in row.values() %}
-                <td>{{ val }}</td>
-                {% endfor %}
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% endif %}
-
-    {% if failed_stations %}
-    <h3>🚨 Stations Not Meeting NTF/DER Goals</h3>
-    <table id="goalTable" class="display nowrap" style="width:100%">
-        <thead>
-            <tr>
-                <th>Station</th>
-                <th>Metric</th>
-                <th>Actual (%)</th>
-                <th>Goal (%)</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for s in failed_stations %}
-            <tr>
-                <td>{{ s[0] }}</td>
-                <td>{{ s[1] }}</td>
-                <td>{{ s[2] }}</td>
-                <td>{{ s[3] }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% endif %}
-
-    {% if fail_details %}
-    <h3>📊 Top Failure Analysis</h3>
-    {% for detail in fail_details %}
-    <div class="expander">
-        <details>
-            <summary><strong>{{ detail.station }} — {{ detail.metric }} Analysis</strong></summary>
-            <p><strong>Actual:</strong> {{ detail.actual }}% | <strong>Goal:</strong> {{ detail.goal }}%</p>
-
-            {% if detail.metric == "NTF" %}
-                <h4>🖥️ Top 3 Computers & Faults</h4>
-                <table class="display nowrap failureTable" style="width:100%">
-                    <thead>
-                        <tr>
-                            <th>Computer Name</th>
-                            <th>Qty</th>
-                            <th>Top Faults</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for comp, count in detail.top_computers.items() %}
-                        <tr>
-                            <td>{{ comp }}</td>
-                            <td>{{ count }}</td>
-                            <td>
-                                {% if detail.top_faults_by_computer[comp] %}
-                                    <ul>
-                                    {% for fault in detail.top_faults_by_computer[comp] %}
-                                        <li>{{ fault[0] }} → {{ fault[1] }}</li>
-                                    {% endfor %}
-                                    </ul>
-                                {% else %}
-                                    No fault data available.
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            {% else %}
-                <h4>🧪 Top 3 Symptoms & Responsibilities</h4>
-                <table class="display nowrap failureTable" style="width:100%">
-                    <thead>
-                        <tr>
-                            <th>Symptom</th>
-                            <th>Qty</th>
-                            <th>Responsibility</th>
-                            <th>Qty</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for i in range(3) %}
-                        <tr>
-                            <td>
-                                {% if i < detail.top_symptoms|length %}
-                                    {{ detail.top_symptoms[i].Symptoms }}
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if i < detail.top_symptoms|length %}
-                                    {{ detail.top_symptoms[i].Count }}
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if i < detail.top_responsibilities|length %}
-                                    {{ detail.top_responsibilities[i].Responsibility }}
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if i < detail.top_responsibilities|length %}
-                                    {{ detail.top_responsibilities[i].Count }}
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            {% endif %}
-        </details>
-    </div>
-    {% endfor %}
-    {% endif %}
-</div>
-
-<!-- DataTables -->
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-
-<script>
-$(document).ready(function() {
-    $('#modelTable').DataTable({
-        scrollX: true,
-        responsive: true,
-        paging: false,
-        searching: false,
-        ordering: true
-    });
-
-    $('#goalTable').DataTable({
-        scrollX: true,
-        responsive: true,
-        paging: false,
-        searching: false,
-        ordering: true
-    });
-
-    $('.failureTable').DataTable({
-        scrollX: true,
-        responsive: true,
-        paging: false,
-        searching: false,
-        ordering: true
-    });
-});
-</script>
-
-<style>
-input[type="datetime-local"] {
-    min-width: 220px;
-    padding: 6px 10px;
-    font-size: 14px;
-}
-</style>
-{% endblock %}
-
-
-
-templates/project_specific.html:
-
-{% extends "base.html" %}
-{% block content %}
-<div class="container">
-    <h2>🎯 Project-Specific FPY Report</h2>
-
-    <div class="form-bar">
-        <form method="POST" class="form-section">
-            <label for="project">Select Project:</label>
-            <select name="project" id="project" required>
-                {% for p in projects %}
-                <option value="{{ p }}" {% if p == selected_project %}selected{% endif %}>{{ p }}</option>
-                {% endfor %}
-            </select>
-
-            <label for="rty_goal">RTY Goal (%):</label>
-            <input type="number" step="0.1" name="rty_goal" id="rty_goal" value="{{ rty_goal }}" required>
-
-            <button type="submit">🔍 View Report</button>
-        </form>
-
-        <div class="dropdown">
-            <button class="dropbtn">📤 Export Project</button>
-            <div class="dropdown-content">
-                <a href="/export-excel?project={{ selected_project }}&rty_goal={{ rty_goal }}">Export as Excel</a>
-<a href="/export-pdf?project={{ selected_project }}&rty_goal={{ rty_goal }}">Export as PDF</a>
             </div>
         </div>
     </div>
-
-    {% if selected_project and data %}
-        {% set actual_rty = data[0]["rty"] %}
-        {% if actual_rty %}
-            {% set actual_rty_val = actual_rty.replace('%', '') | float %}
-            {% if actual_rty_val < rty_goal %}
-                <div class="alert warning">
-                    ⚠ RTY Not Meeting Goal — Actual: {{ actual_rty_val }}%, Goal: {{ rty_goal }}%
-                </div>
-            {% else %}
-                <div class="alert success">
-                    ✅ RTY Goal Met — Actual: {{ actual_rty_val }}%, Goal: {{ rty_goal }}%
-                </div>
-            {% endif %}
-        {% endif %}
     {% endif %}
-
+    
     {% if data %}
-    <table id="projectTable" class="display nowrap" style="width:100%">
-        <thead>
-            <tr>
-                {% for col in data[0].keys() %}
-                <th>{{ col }}</th>
-                {% endfor %}
-            </tr>
-        </thead>
-        <tbody>
-            {% for row in data %}
-            <tr>
-                {% for val in row.values() %}
-                <td>{{ val }}</td>
-                {% endfor %}
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% endif %}
-
-    {% if failed_stations %}
-    <h3>🚨 Stations Not Meeting NTF/DER Goals</h3>
-    <table id="goalTable" class="display nowrap" style="width:100%">
-        <thead>
-            <tr>
-                <th>Station</th>
-                <th>Metric</th>
-                <th>Actual (%)</th>
-                <th>Goal (%)</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for s in failed_stations %}
-            <tr>
-                <td>{{ s[0] }}</td>
-                <td>{{ s[1] }}</td>
-                <td>{{ s[2] }}</td>
-                <td>{{ s[3] }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% endif %}
-
-    {% if fail_details %}
-    <h3>📊 Top Failure Analysis</h3>
-    {% for detail in fail_details %}
-    <div class="expander">
-        <details>
-            <summary><strong>{{ detail.station }} — {{ detail.metric }} Analysis</strong></summary>
-            <p><strong>Actual:</strong> {{ detail.actual }}% | <strong>Goal:</strong> {{ detail.goal }}%</p>
-
-            {% if detail.metric == "NTF" %}
-                <h4>🖥️ Top 3 Computers & Faults</h4>
-                <table class="excel-table">
+    <!-- FPY Data Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">FPY Data</h6>
+            <div class="dropdown no-arrow">
+                <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                </a>
+                <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+                    <div class="dropdown-header">Actions:</div>
+                    <a class="dropdown-item" href="#" id="toggle-columns">Toggle Columns</a>
+                    <a class="dropdown-item" href="#" id="reset-table">Reset View</a>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="modelTable" class="table table-striped table-hover" style="width:100%">
                     <thead>
                         <tr>
-                            <th>Top Computer → Qty</th>
-                            <th>Top 3 Faults → Qty</th>
+                            {% for col in data[0].keys() %}
+                            <th>{{ col }}</th>
+                            {% endfor %}
                         </tr>
                     </thead>
                     <tbody>
-                        {% for comp, count in detail.top_computers.items() %}
+                        {% for row in data %}
                         <tr>
-                            <td>{{ comp }} → {{ count }}</td>
-                            <td>
-                                {% if detail.top_faults_by_computer[comp] %}
-                                    {% for fault in detail.top_faults_by_computer[comp] %}
-                                        {{ loop.index }}. {{ fault[0] }} → {{ fault[1] }}<br>
-                                    {% endfor %}
-                                {% else %}
-                                    No fault data available.
-                                {% endif %}
-                            </td>
+                            {% for val in row.values() %}
+                            <td>{{ val }}</td>
+                            {% endfor %}
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
-            {% else %}
-                <h4>🧪 Top 3 Symptoms & Responsibilities</h4>
-                <table class="excel-table">
-                    <thead>
-                        <tr>
-                            <th>Symptom → Qty</th>
-                            <th>Responsibility → Qty</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for i in range(3) %}
-                        <tr>
-                            <td>
-                                {% if i < detail.top_symptoms|length %}
-                                    {{ detail.top_symptoms[i].Symptoms }} → {{ detail.top_symptoms[i].Count }}
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if i < detail.top_responsibilities|length %}
-                                    {{ detail.top_responsibilities[i].Responsibility }} → {{ detail.top_responsibilities[i].Count }}
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            {% endif %}
-        </details>
+            </div>
+        </div>
     </div>
-    {% endfor %}
+    {% endif %}
+    
+    {% if data %}
+    <!-- Station Goals Status Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Station Goals Status</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="stationGoalsTable" class="table table-striped table-hover" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Station</th>
+                            <th>RTY (%)</th>
+                            <th>NTF (%)</th>
+                            <th>NTF Goal (%)</th>
+                            <th>NTF Status</th>
+                            <th>DER (%)</th>
+                            <th>DER Goal (%)</th>
+                            <th>DER Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in data %}
+                        {% set station = row.station %}
+                        {% set rty_val = row.rty.replace('%', '') | float %}
+                        {% set ntf_val = row.ntf.replace('%', '') | float if row.ntf else 0 %}
+                        {% set der_val = row.der.replace('%', '') | float if row.der else 0 %}
+                        {% set ntf_goal = Config.NTF_GOALS.get(station, 0) %}
+                        {% set der_goal = Config.DER_GOALS.get(station, 0) %}
+                        {% set ntf_status = "Goal Met" if ntf_val <= ntf_goal else "Goal Not Met" %}
+                        {% set der_status = "Goal Met" if der_val <= der_goal else "Goal Not Met" %}
+                        <tr>
+                            <td>{{ station }}</td>
+                            <td>{{ row.rty }}</td>
+                            <td>{{ row.ntf or "0%" }}</td>
+                            <td>{{ ntf_goal }}%</td>
+                            <td>
+                                {% if ntf_goal > 0 %}
+                                <span class="badge {% if ntf_status == "Goal Met" %}bg-success{% else %}bg-danger{% endif %}">
+                                    {{ ntf_status }}
+                                </span>
+                                {% else %}
+                                <span class="badge bg-secondary">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ row.der or "0%" }}</td>
+                            <td>{{ der_goal }}%</td>
+                            <td>
+                                {% if der_goal > 0 %}
+                                <span class="badge {% if der_status == "Goal Met" %}bg-success{% else %}bg-danger{% endif %}">
+                                    {{ der_status }}
+                                </span>
+                                {% else %}
+                                <span class="badge bg-secondary">N/A</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if failed_stations %}
+    <!-- Failed Stations Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Stations Not Meeting NTF/DER Goals</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="goalTable" class="table table-striped table-hover" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Station</th>
+                            <th>Metric</th>
+                            <th>Actual (%)</th>
+                            <th>Goal (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in failed_stations %}
+                        <tr>
+                            <td>{{ s[0] }}</td>
+                            <td>{{ s[1] }}</td>
+                            <td>{{ s[2] }}</td>
+                            <td>{{ s[3] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if data %}
+    <!-- All Stations Analysis -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">All Stations Analysis</h6>
+        </div>
+        <div class="card-body">
+            {% for row in data %}
+            {% set station = row.station %}
+            {% set ntf_val = row.ntf.replace('%', '') | float if row.ntf else 0 %}
+            {% set der_val = row.der.replace('%', '') | float if row.der else 0 %}
+            {% set ntf_goal = Config.NTF_GOALS.get(station, 0) %}
+            {% set der_goal = Config.DER_GOALS.get(station, 0) %}
+            
+            <div class="mb-4">
+                <div class="accordion" id="stationAnalysisAccordion{{ loop.index }}">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="stationHeading{{ loop.index }}">
+                            <button class="accordion-button {% if loop.index > 1 %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#stationCollapse{{ loop.index }}" aria-expanded="{% if loop.index == 1 %}true{% else %}false{% endif %}" aria-controls="stationCollapse{{ loop.index }}">
+                                <strong>{{ station }} Analysis</strong>
+                                <span class="ms-2">
+                                    {% if ntf_goal > 0 %}
+                                    <span class="badge {% if ntf_val <= ntf_goal %}bg-success{% else %}bg-danger{% endif %}">
+                                        NTF: {{ ntf_val }}% / {{ ntf_goal }}%
+                                    </span>
+                                    {% endif %}
+                                    {% if der_goal > 0 %}
+                                    <span class="badge {% if der_val <= der_goal %}bg-success{% else %}bg-danger{% endif %}">
+                                        DER: {{ der_val }}% / {{ der_goal }}%
+                                    </span>
+                                    {% endif %}
+                                </span>
+                            </button>
+                        </h2>
+                        <div id="stationCollapse{{ loop.index }}" class="accordion-collapse collapse {% if loop.index == 1 %}show{% endif %}" aria-labelledby="stationHeading{{ loop.index }}" data-bs-parent="#stationAnalysisAccordion{{ loop.index }}">
+                            <div class="accordion-body">
+                                <div class="row mb-3">
+                                    <div class="col-md-3">
+                                        <p><strong>RTY:</strong> {{ row.rty }}</p>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <p><strong>Input:</strong> {{ row.inPut }}</p>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <p><strong>Pass:</strong> {{ row.pass }}</p>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <p><strong>Fail:</strong> {{ row.fail }}</p>
+                                    </div>
+                                </div>
+                                
+                                {% if ntf_goal > 0 %}
+                                <h5 class="mt-3">NTF Analysis</h5>
+                                <div class="table-responsive">
+                                    <table id="ntfTable{{ loop.index }}" class="table table-striped table-hover analysis-table" style="width:100%">
+                                        <thead>
+                                            <tr>
+                                                <th>Computer Name</th>
+                                                <th>Qty</th>
+                                                <th>Top Faults</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% set ntf_details = get_ntf_details_for_station(selected_model, station, station_type, start_date, end_date) %}
+                                            {% if ntf_details and ntf_details.top_computers %}
+                                            {% for comp, count in ntf_details.top_computers.items() %}
+                                            <tr>
+                                                <td>{{ comp }}</td>
+                                                <td>{{ count }}</td>
+                                                <td>
+                                                    {% if ntf_details.top_faults_by_computer and ntf_details.top_faults_by_computer[comp] %}
+                                                    <ol class="mb-0">
+                                                        {% for fault in ntf_details.top_faults_by_computer[comp] %}
+                                                        <li>{{ fault[0] }} → {{ fault[1] }}</li>
+                                                        {% endfor %}
+                                                    </ol>
+                                                    {% else %}
+                                                    No fault data available.
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                            {% else %}
+                                            <tr>
+                                                <td colspan="3" class="text-center">No NTF data available</td>
+                                            </tr>
+                                            {% endif %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% endif %}
+                                
+                                {% if der_goal > 0 %}
+                                <h5 class="mt-3">DER Analysis</h5>
+                                <div class="table-responsive">
+                                    <table id="derTable{{ loop.index }}" class="table table-striped table-hover analysis-table" style="width:100%">
+                                        <thead>
+                                            <tr>
+                                                <th>Symptom</th>
+                                                <th>Qty</th>
+                                                <th>Responsibility</th>
+                                                <th>Qty</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% set der_details = get_der_details_for_station(selected_model, station, station_type, start_date, end_date) %}
+                                            {% if der_details and der_details.top_symptoms and der_details.top_responsibilities %}
+                                                {% for i in range(3) %}
+                                                <tr>
+                                                    <td>
+                                                        {% if i < der_details.top_symptoms|length %}
+                                                            {{ der_details.top_symptoms[i].Symptoms }}
+                                                        {% else %}
+                                                            -
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        {% if i < der_details.top_symptoms|length %}
+                                                            {{ der_details.top_symptoms[i].Count }}
+                                                        {% else %}
+                                                            -
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        {% if i < der_details.top_responsibilities|length %}
+                                                            {{ der_details.top_responsibilities[i].Responsibility }}
+                                                        {% else %}
+                                                            -
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        {% if i < der_details.top_responsibilities|length %}
+                                                            {{ der_details.top_responsibilities[i].Count }}
+                                                        {% else %}
+                                                            -
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            {% else %}
+                                                <tr>
+                                                    <td colspan="4" class="text-center">No DER data available</td>
+                                                </tr>
+                                            {% endif %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
     {% endif %}
 </div>
 
-<!-- DataTables -->
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<!-- Loading Modal -->
+<div class="modal fade" id="loadingModal" tabindex="-1" aria-labelledby="loadingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-body text-center">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p>Refreshing data, please wait...</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
 
+{% block scripts %}
 <script>
-$(document).ready(function() {
-    $('#projectTable').DataTable({
-        scrollX: true,
-        responsive: true,
-        paging: false,
-        searching: false,
-        ordering: true
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize DataTables with destroy option to prevent reinitialization
+        let modelTable;
+        let stationGoalsTable;
+        let goalTable;
+        
+        function initDataTables() {
+            // Destroy existing DataTables if they exist
+            if (modelTable) {
+                modelTable.destroy();
+            }
+            if (stationGoalsTable) {
+                stationGoalsTable.destroy();
+            }
+            if (goalTable) {
+                goalTable.destroy();
+            }
+            
+            // Initialize modelTable
+            modelTable = $('#modelTable').DataTable({
+                responsive: true,
+                paging: false,
+                searching: false,
+                ordering: true,
+                info: false,
+                destroy: true
+            });
+            
+            // Initialize stationGoalsTable
+            stationGoalsTable = $('#stationGoalsTable').DataTable({
+                responsive: true,
+                paging: false,
+                searching: false,
+                ordering: true,
+                info: false,
+                destroy: true
+            });
+            
+            // Initialize goalTable
+            goalTable = $('#goalTable').DataTable({
+                responsive: true,
+                paging: false,
+                searching: false,
+                ordering: true,
+                info: false,
+                destroy: true
+            });
+            
+            // Initialize analysis tables
+            $('.analysis-table').each(function() {
+                const tableId = $(this).attr('id');
+                if (tableId && $.fn.DataTable.isDataTable('#' + tableId)) {
+                    $('#' + tableId).DataTable().destroy();
+                }
+                
+                // Check if the table has a "No data available" row
+                const hasNoDataRow = $(this).find('td[colspan]').length > 0;
+                
+                $(this).DataTable({
+                    responsive: true,
+                    paging: false,
+                    searching: false,
+                    ordering: !hasNoDataRow,  // Disable sorting if no data
+                    info: false,
+                    destroy: true,
+                    "columnDefs": [
+                        { "targets": '_all', "defaultContent": "-" }  // Fill empty cells with "-"
+                    ]
+                });
+            });
+        }
+        
+        // Initialize DataTables on page load
+        initDataTables();
+        
+        // Refresh button functionality
+        document.getElementById('refresh-btn').addEventListener('click', function() {
+            const loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
+            loadingModal.show();
+            
+            // Simulate data refresh
+            setTimeout(function() {
+                location.reload();
+            }, 1500);
+        });
+        
+        // Set max date for datetime inputs to current date/time
+        const now = new Date();
+        const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+                                .toISOString().slice(0, 16);
+        
+        const startInput = document.getElementById('start_date');
+        const endInput = document.getElementById('end_date');
+        
+        if (startInput && !startInput.value) {
+            startInput.value = localDateTime;
+        }
+        
+        if (endInput && !endInput.value) {
+            endInput.value = localDateTime;
+        }
+        
+        startInput.setAttribute('max', localDateTime);
+        endInput.setAttribute('max', localDateTime);
     });
-
-    $('#goalTable').DataTable({
-        scrollX: true,
-        responsive: true,
-        paging: false,
-        searching: false,
-        ordering: true
-    });
-});
 </script>
-
-<style>
-.form-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    gap: 20px;
-    margin-bottom: 15px;
-}
-
-.form-section {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    align-items: center;
-}
-
-.form-section label {
-    font-weight: bold;
-}
-
-.dropdown {
-    position: relative;
-    display: inline-block;
-}
-
-.dropbtn {
-    background-color: #0078d4;
-    color: white;
-    padding: 8px 16px;
-    font-size: 14px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.dropdown-content {
-    display: none;
-    position: absolute;
-    right: 0;
-    background-color: #f9f9f9;
-    min-width: 160px;
-    box-shadow: 0px 4px 8px rgba(0,0,0,0.1);
-    z-index: 1;
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-.dropdown-content a {
-    color: black;
-    padding: 10px 16px;
-    text-decoration: none;
-    display: block;
-    font-size: 14px;
-}
-
-.dropdown-content a:hover {
-    background-color: #f1f1f1;
-}
-
-.dropdown:hover .dropdown-content {
-    display: block;
-}
-
-.dropdown:hover .dropbtn {
-    background-color: #005a9e;
-}
-
-.expander details {
-    margin: 20px 0;
-    padding: 15px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    background-color: #f9f9f9;
-}
-
-.expander summary {
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 16px;
-}
-
-.excel-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-    margin-top: 10px;
-}
-
-.excel-table th, .excel-table td {
-    border: 1px solid #ccc;
-    padding: 8px 12px;
-    text-align: left;
-    vertical-align: top;
-}
-
-.excel-table th {
-    background-color: #e0e0e0;
-    font-weight: bold;
-}
-
-.excel-table tr:nth-child(even) {
-    background-color: #f9f9f9;
-}
-
-.excel-table tr:hover {
-    background-color: #f1f1f1;
-}
-
-.alert.success {
-    background-color: #e6ffed;
-    border-left: 4px solid #2ecc71;
-    padding: 10px;
-    margin: 15px 0;
-}
-
-.alert.warning {
-    background-color: #fff3cd;
-    border-left: 4px solid #f39c12;
-    padding: 10px;
-    margin: 15px 0;
-}
-</style>
 {% endblock %}
 
 
-utils/api.py:
+
+dahsboard.py:
 
 
-import requests
-from datetime import datetime, timedelta
-from config import Config
-
-def get_token():
-    payload = {"userCode": Config.USER_CODE, "password": Config.PASSWORD, "langCode": Config.LANG_CODE}
-    headers = {"Content-Type": "application/json", "Accept": "application/json"}
-    resp = requests.post(Config.LOGIN_URL, json=payload, headers=headers)
-    resp.raise_for_status()
-    data = resp.json()
-    return data["data"]
-
-def get_project_list(token):
-    today = datetime.now().strftime("%Y-%m-%d")
-    headers = {"token": token, "lang-code": Config.LANG_CODE}
-    params = {"stationType": "BE", "startDate": today, "endDate": today}
-    resp = requests.get(Config.PROJECT_LIST_URL, headers=headers, params=params)
-    resp.raise_for_status()
-    return resp.json()["data"]
-
-def get_fpy(token, projects):
-    now = datetime.now()
-    start = now.replace(hour=8, minute=0, second=0, microsecond=0)
-    payload = {
-        "startDate": start.strftime("%Y-%m-%d %H:%M:%S"),
-        "endDate": now.strftime("%Y-%m-%d %H:%M:%S"),
-        "projects": projects,
-        "station": ["PCURR", "AUD", "ANTWBG", "RQC", "RQC2", "MMI", "MMI2_All"],
-        "stationType": "BE",
-        "current": 1,
-        "size": 100
-    }
-    headers = {"Content-Type": "application/json", "token": token, "lang-code": Config.LANG_CODE}
-    resp = requests.post(Config.FPY_URL, json=payload, headers=headers)
-    resp.raise_for_status()
-    return resp.json()["data"]["records"]
-
-def get_station_ntf_details(token, project, station):
-    now = datetime.now()
-    start = now.replace(hour=8, minute=0, second=0, microsecond=0)
-    params = {
-        "startDate": start.strftime("%Y-%m-%d %H:%M:%S"),
-        "endDate": now.strftime("%Y-%m-%d %H:%M:%S"),
-        "project": project,
-        "stationName": station,
-        "stationType": "BE",
-        "workOrder": "",
-        "lineName": "",
-        "current": 1,
-        "size": 1000
-    }
-    headers = {"token": token, "lang-code": Config.LANG_CODE}
-    resp = requests.get(Config.NTF_DETAIL_URL, headers=headers, params=params)
-    resp.raise_for_status()
-    return resp.json()["data"]["records"]
-
-def get_station_der_details(token, project, station):
-    end_time = datetime.now()
-    start_time = end_time - timedelta(days=1)
-    params = {
-        "startDate": start_time.strftime("%Y-%m-%d %H:%M:%S"),
-        "endDate": end_time.strftime("%Y-%m-%d %H:%M:%S"),
-        "project": project,
-        "stationName": station,
-        "stationType": "BE",
-        "workOrder": "",
-        "lineName": "",
-        "current": 1,
-        "size": 1000
-    }
-    headers = {"token": token, "lang-code": Config.LANG_CODE, "Accept": "application/json"}
-    resp = requests.get(Config.DER_DETAIL_URL, params=params, headers=headers)
-    resp.raise_for_status()
-    return resp.json()["data"]["records"]
-
-
-
-def get_fpy_by_model(token, model_name, station_type, start_date, end_date):
-    payload = {
-        "startDate": start_date,
-        "endDate": end_date,
-        "projects": [model_name],
-        "station": ["PCURR", "AUD", "ANTWBG", "RQC", "RQC2", "MMI", "MMI2_All"],
-        "stationType": station_type,
-        "current": 1,
-        "size": 100
-    }
-    headers = {"Content-Type": "application/json", "token": token, "lang-code": Config.LANG_CODE}
-    resp = requests.post(Config.FPY_URL, json=payload, headers=headers)
-    resp.raise_for_status()
-    return resp.json()["data"]["records"]
-
-def get_station_ntf_details_by_model(token, model_name, station, station_type, start_date, end_date):
-    params = {
-        "startDate": start_date,
-        "endDate": end_date,
-        "project": model_name,
-        "stationName": station,
-        "stationType": station_type,
-        "workOrder": "",
-        "lineName": "",
-        "current": 1,
-        "size": 1000
-    }
-    headers = {"token": token, "lang-code": Config.LANG_CODE}
-    resp = requests.get(Config.NTF_DETAIL_URL, headers=headers, params=params)
-    resp.raise_for_status()
-    return resp.json()["data"]["records"]
-
-def get_station_der_details_by_model(token, model_name, station, station_type, start_date, end_date):
-    params = {
-        "startDate": start_date,
-        "endDate": end_date,
-        "project": model_name,
-        "stationName": station,
-        "stationType": station_type,
-        "workOrder": "",
-        "lineName": "",
-        "current": 1,
-        "size": 1000
-    }
-    headers = {"token": token, "lang-code": Config.LANG_CODE, "Accept": "application/json"}
-    resp = requests.get(Config.DER_DETAIL_URL, params=params, headers=headers)
-    resp.raise_for_status()
-    return resp.json()["data"]["records"]
-
-
-# utils/api.py
-
-def get_fpy(token, projects, start_date=None, end_date=None):
-    if start_date is None or end_date is None:
-        # Default behavior (current day from 8AM to now)
-        now = datetime.now()
-        start = now.replace(hour=8, minute=0, second=0, microsecond=0)
-        end = now
-    else:
-        # Use provided date range
-        start = start_date
-        end = end_date
-        
-    payload = {
-        "startDate": start.strftime("%Y-%m-%d %H:%M:%S"),
-        "endDate": end.strftime("%Y-%m-%d %H:%M:%S"),
-        "projects": projects,
-        "station": ["PCURR", "AUD", "ANTWBG", "RQC", "RQC2", "MMI", "MMI2_All"],
-        "stationType": "BE",
-        "current": 1,
-        "size": 100
-    }
-    headers = {"Content-Type": "application/json", "token": token, "lang-code": Config.LANG_CODE}
-    resp = requests.post(Config.FPY_URL, json=payload, headers=headers)
-    resp.raise_for_status()
-    return resp.json()["data"]["records"]
-
-
-
-utils/helpers.py:
-
-import pandas as pd
-
-def get_top_n_counts(df, col, n=3):
-    if col not in df.columns or df.empty:
-        return pd.DataFrame(columns=[col, "Count"])
-    counts = df[col].value_counts().head(n).reset_index()
-    counts.columns = [col, "Count"]
-    return counts
-
-
-app.py:
-
-
-from flask import send_file, request
+from flask import Blueprint, render_template, request, send_file, jsonify, redirect, url_for
+from flask_login import login_required
 import pandas as pd
 import io
 from openpyxl import Workbook
-from openpyxl.styles import Font, Alignment
-from flask import Flask, render_template, request
-from xhtml2pdf import pisa
-from flask import Response, render_template_string
+from openpyxl.styles import Font, Alignment, PatternFill
 from datetime import datetime
-import pandas as pd
-from openpyxl import Workbook
-from openpyxl.styles import Font, Alignment
-import io
-from utils.api import (
-    get_token,
-    get_project_list,
-    get_project_list,
-    get_fpy,
-    get_station_ntf_details,
-    get_station_der_details
-)
-from utils.helpers import get_top_n_counts
+from utils.api import *
+from utils.helpers import *
 from config import Config
-from datetime import datetime
-import pandas as pd
 
-app = Flask(__name__)
+dashboard_bp = Blueprint('dashboard', __name__, url_prefix='/dashboard')
 
-@app.route('/')
+@dashboard_bp.route('/')
+@login_required
 def index():
-    return render_template('index.html')
+    current_time = datetime.now().strftime('%H:%M')
+    return render_template('index.html', current_time=current_time)
 
-@app.route('/auto-data')
+@dashboard_bp.route('/auto-data')
+@login_required
 def auto_data():
-    token = get_token()
-    projects = get_project_list(token)
-    fpy_data = get_fpy(token, projects)
-
-    desired_columns = ["project", "station", "inPut", "pass", "fail", "notFail", "der", "ntf", "rty"]
-    filtered_data = [
-        {col: row.get(col, "") for col in desired_columns}
-        for row in fpy_data
-    ]
-
-    current_time = datetime.now().strftime("%H:%M")
-    return render_template('auto_data.html', data=filtered_data, current_time=current_time)
-
-@app.route('/project-specific', methods=['GET', 'POST'])
-def project_specific():
-    token = get_token()
-    projects = get_project_list(token)
-    selected_project = None
-    rty_goal = 90.0
-    fpy_data = []
-    failed_stations = []
-    fail_details = []
-
-    if request.method == 'POST':
-        selected_project = request.form.get('project')
-        rty_goal = float(request.form.get('rty_goal', 90.0))
-        fpy_data_raw = get_fpy(token, [selected_project])
+    try:
+        token = get_token()
+        projects = get_project_list(token)
+        fpy_data = get_fpy(token, projects)
 
         desired_columns = ["project", "station", "inPut", "pass", "fail", "notFail", "der", "ntf", "rty"]
-        fpy_data = [
+        filtered_data = [
             {col: row.get(col, "") for col in desired_columns}
-            for row in fpy_data_raw
+            for row in fpy_data
         ]
 
-        if fpy_data and "rty" in fpy_data[0]:
-            try:
-                actual_rty = float(str(fpy_data[0]["rty"]).replace("%", ""))
-                if actual_rty < rty_goal:
-                    for row in fpy_data:
-                        station = row.get("station")
-                        ntf = float(str(row.get("ntf", "0")).replace("%", "")) if row.get("ntf") else None
-                        der = float(str(row.get("der", "0")).replace("%", "")) if row.get("der") else None
+        current_time = datetime.now().strftime('%H:%M')
+        return render_template('dashboard/auto_data.html', data=filtered_data, current_time=current_time)
+    except Exception as e:
+        current_time = datetime.now().strftime('%H:%M')
+        return render_template('errors/500.html', error=str(e), current_time=current_time)
 
-                        if station in Config.NTF_GOALS and ntf is not None and ntf > Config.NTF_GOALS[station]:
-                            failed_stations.append((station, "NTF", ntf, Config.NTF_GOALS[station]))
-                            detail_data = get_station_ntf_details(token, selected_project, station)
-                            detail_df = pd.DataFrame(detail_data)
-                            detail_df = detail_df.rename(columns={
-                                "substation": "Computer Name",
-                                "sn": "SN",
-                                "symptomEnName": "Fault Description"
-                            })
-                            detail_df = detail_df[["SN", "Fault Description", "Computer Name"]]
+@dashboard_bp.route('/project-specific', methods=['GET', 'POST'])
+@login_required
+def project_specific():
+    current_time = datetime.now().strftime('%H:%M')
+    try:
+        token = get_token()
+        projects = get_project_list(token)
+        selected_project = None
+        rty_goal = 90.0
+        fpy_data = []
+        failed_stations = []
+        fail_details = []
 
-                            top_computers = detail_df["Computer Name"].value_counts().head(3).to_dict()
-                            top_faults_by_computer = {}
-                            for comp in top_computers:
-                                comp_faults = detail_df[detail_df["Computer Name"] == comp]
-                                faults = comp_faults["Fault Description"].value_counts().head(3).reset_index().values.tolist()
-                                top_faults_by_computer[comp] = faults
+        if request.method == 'POST':
+            selected_project = request.form.get('project')
+            rty_goal = float(request.form.get('rty_goal', 90.0))
+            fpy_data_raw = get_fpy(token, [selected_project])
 
-                            fail_details.append({
-                                "station": station,
-                                "metric": "NTF",
-                                "actual": ntf,
-                                "goal": Config.NTF_GOALS[station],
-                                "top_computers": top_computers,
-                                "top_faults_by_computer": top_faults_by_computer
-                            })
+            desired_columns = ["project", "station", "inPut", "pass", "fail", "notFail", "der", "ntf", "rty"]
+            fpy_data = [
+                {col: row.get(col, "") for col in desired_columns}
+                for row in fpy_data_raw
+            ]
 
-                        if station in Config.DER_GOALS and der is not None and der > Config.DER_GOALS[station]:
-                            failed_stations.append((station, "DER", der, Config.DER_GOALS[station]))
-                            detail_data = get_station_der_details(token, selected_project, station)
-                            detail_df = pd.DataFrame(detail_data)
-                            detail_df = detail_df.rename(columns={
-                                "sn": "SN",
-                                "responsibilityEnName": "Responsibility",
-                                "symptomEnName": "Symptoms"
-                            })
-                            detail_df = detail_df[["SN", "Responsibility", "Symptoms"]]
-                            top_symptoms = get_top_n_counts(detail_df, "Symptoms", 3)
-                            top_responsibilities = get_top_n_counts(detail_df, "Responsibility", 3)
+            if fpy_data and "rty" in fpy_data[0]:
+                try:
+                    actual_rty = float(str(fpy_data[0]["rty"]).replace("%", ""))
+                    if actual_rty < rty_goal:
+                        for row in fpy_data:
+                            station = row.get("station")
+                            ntf = float(str(row.get("ntf", "0")).replace("%", "")) if row.get("ntf") else None
+                            der = float(str(row.get("der", "0")).replace("%", "")) if row.get("der") else None
 
-                            fail_details.append({
-                                "station": station,
-                                "metric": "DER",
-                                "actual": der,
-                                "goal": Config.DER_GOALS[station],
-                                "top_symptoms": top_symptoms.to_dict(orient="records"),
-                                "top_responsibilities": top_responsibilities.to_dict(orient="records")
-                            })
-            except Exception as e:
-                print("RTY analysis error:", e)
+                            if station in Config.NTF_GOALS and ntf is not None and ntf > Config.NTF_GOALS[station]:
+                                failed_stations.append((station, "NTF", ntf, Config.NTF_GOALS[station]))
+                                detail_data = get_station_ntf_details(token, selected_project, station)
+                                detail_df = pd.DataFrame(detail_data)
+                                detail_df = detail_df.rename(columns={
+                                    "substation": "Computer Name",
+                                    "sn": "SN",
+                                    "symptomEnName": "Fault Description"
+                                })
+                                detail_df = detail_df[["SN", "Fault Description", "Computer Name"]]
 
-    return render_template("project_specific.html",
-                           projects=projects,
-                           selected_project=selected_project,
-                           rty_goal=rty_goal,
-                           data=fpy_data,
-                           failed_stations=failed_stations,
-                           fail_details=fail_details)
+                                top_computers = detail_df["Computer Name"].value_counts().head(3).to_dict()
+                                top_faults_by_computer = {}
+                                for comp in top_computers:
+                                    comp_faults = detail_df[detail_df["Computer Name"] == comp]
+                                    faults = comp_faults["Fault Description"].value_counts().head(3).reset_index().values.tolist()
+                                    top_faults_by_computer[comp] = faults
 
+                                fail_details.append({
+                                    "station": station,
+                                    "metric": "NTF",
+                                    "actual": ntf,
+                                    "goal": Config.NTF_GOALS[station],
+                                    "top_computers": top_computers,
+                                    "top_faults_by_computer": top_faults_by_computer
+                                })
 
+                            if station in Config.DER_GOALS and der is not None and der > Config.DER_GOALS[station]:
+                                failed_stations.append((station, "DER", der, Config.DER_GOALS[station]))
+                                detail_data = get_station_der_details(token, selected_project, station)
+                                detail_df = pd.DataFrame(detail_data)
+                                detail_df = detail_df.rename(columns={
+                                    "sn": "SN",
+                                    "responsibilityEnName": "Responsibility",
+                                    "symptomEnName": "Symptoms"
+                                })
+                                detail_df = detail_df[["SN", "Responsibility", "Symptoms"]]
+                                top_symptoms = get_top_n_counts(detail_df, "Symptoms", 3)
+                                top_responsibilities = get_top_n_counts(detail_df, "Responsibility", 3)
 
-@app.route('/export-excel')
+                                fail_details.append({
+                                    "station": station,
+                                    "metric": "DER",
+                                    "actual": der,
+                                    "goal": Config.DER_GOALS[station],
+                                    "top_symptoms": top_symptoms.to_dict(orient="records"),
+                                    "top_responsibilities": top_responsibilities.to_dict(orient="records")
+                                })
+                except Exception as e:
+                    print("RTY analysis error:", e)
+
+        return render_template("dashboard/project_specific.html",
+                               projects=projects,
+                               selected_project=selected_project,
+                               rty_goal=rty_goal,
+                               data=fpy_data,
+                               failed_stations=failed_stations,
+                               fail_details=fail_details,
+                               current_time=current_time)
+    except Exception as e:
+        return render_template('errors/500.html', error=str(e), current_time=current_time)
+
+def get_ntf_details_for_station(model_name, station, station_type, start_date, end_date):
+    """Get NTF details for a specific station"""
+    try:
+        token = get_token()
+        detail_data = get_station_ntf_details_by_model(token, model_name, station, station_type, start_date, end_date)
+        if not detail_data:
+            return {
+                "top_computers": {},
+                "top_faults_by_computer": {}
+            }
+            
+        detail_df = pd.DataFrame(detail_data).rename(columns={
+            "substation": "Computer Name",
+            "sn": "SN",
+            "symptomEnName": "Fault Description"
+        })
+        detail_df = detail_df[["SN", "Fault Description", "Computer Name"]]
+        
+        if not detail_df.empty:
+            top_computers = detail_df["Computer Name"].value_counts().head(3).to_dict()
+            top_faults_by_computer = {}
+            
+            for comp in top_computers:
+                comp_faults = detail_df[detail_df["Computer Name"] == comp]
+                faults = comp_faults["Fault Description"].value_counts().head(3).reset_index().values.tolist()
+                top_faults_by_computer[comp] = faults
+                
+            return {
+                "top_computers": top_computers,
+                "top_faults_by_computer": top_faults_by_computer
+            }
+        else:
+            return {
+                "top_computers": {},
+                "top_faults_by_computer": {}
+            }
+    except Exception as e:
+        print(f"Error getting NTF details for {station}: {e}")
+        return {
+            "top_computers": {},
+            "top_faults_by_computer": {}
+        }
+
+def get_der_details_for_station(model_name, station, station_type, start_date, end_date):
+    """Get DER details for a specific station"""
+    try:
+        token = get_token()
+        detail_df = pd.DataFrame(get_station_der_details_by_model(token, model_name, station, station_type, start_date, end_date)).rename(columns={
+            "sn": "SN",
+            "responsibilityEnName": "Responsibility",
+            "symptomEnName": "Symptoms"
+        })
+        detail_df = detail_df[["SN", "Responsibility", "Symptoms"]]
+        
+        # Get top symptoms and responsibilities
+        if not detail_df.empty:
+            top_symptoms = get_top_n_counts(detail_df, "Symptoms", 3)
+            top_responsibilities = get_top_n_counts(detail_df, "Responsibility", 3)
+            
+            return {
+                "top_symptoms": top_symptoms.to_dict(orient="records"),
+                "top_responsibilities": top_responsibilities.to_dict(orient="records")
+            }
+        else:
+            return {
+                "top_symptoms": [],
+                "top_responsibilities": []
+            }
+    except Exception as e:
+        print(f"Error getting DER details for {station}: {e}")
+        return {
+            "top_symptoms": [],
+            "top_responsibilities": []
+        }
+
+@dashboard_bp.route('/model-specific', methods=['GET', 'POST'])
+@login_required
+def model_specific():
+    current_time = datetime.now().strftime('%H:%M')
+    try:
+        token = get_token()
+        selected_model = None
+        station_type = "BE"
+        start_date = None
+        end_date = None
+        rty_goal = 90.0
+        fpy_data = []
+        failed_stations = []
+
+        if request.method == 'POST':
+            selected_model = request.form.get('model_name')
+            station_type = request.form.get('station_type', 'BE')
+            start_date = request.form.get('start_date')
+            end_date = request.form.get('end_date')
+            rty_goal = float(request.form.get('rty_goal', 90.0))
+
+            print(f"Fetching data for model: {selected_model}, station type: {station_type}, start: {start_date}, end: {end_date}")
+            
+            fpy_data_raw = get_fpy_by_model(token, selected_model, station_type, start_date, end_date)
+            print(f"Raw data received: {len(fpy_data_raw) if fpy_data_raw else 0} records")
+
+            desired_columns = ["project", "station", "inPut", "pass", "fail", "notFail", "der", "ntf", "rty"]
+            fpy_data = [
+                {col: row.get(col, "") for col in desired_columns}
+                for row in fpy_data_raw
+            ]
+            
+            print(f"Processed data: {len(fpy_data)} records")
+            if fpy_data:
+                print(f"First record: {fpy_data[0]}")
+
+            if fpy_data and "rty" in fpy_data[0]:
+                try:
+                    actual_rty = float(str(fpy_data[0]["rty"]).replace("%", ""))
+                    print(f"Actual RTY: {actual_rty}%, Goal: {rty_goal}%")
+                    
+                    if actual_rty < rty_goal:
+                        for row in fpy_data:
+                            station = row.get("station")
+                            ntf = float(str(row.get("ntf", "0")).replace("%", "")) if row.get("ntf") else None
+                            der = float(str(row.get("der", "0")).replace("%", "")) if row.get("der") else None
+
+                            if station in Config.NTF_GOALS and ntf is not None and ntf > Config.NTF_GOALS[station]:
+                                failed_stations.append((station, "NTF", ntf, Config.NTF_GOALS[station]))
+
+                            if station in Config.DER_GOALS and der is not None and der > Config.DER_GOALS[station]:
+                                failed_stations.append((station, "DER", der, Config.DER_GOALS[station]))
+                except Exception as e:
+                    print("RTY analysis error:", e)
+
+        return render_template("dashboard/model_specific.html",
+                               selected_model=selected_model,
+                               station_type=station_type,
+                               start_date=start_date,
+                               end_date=end_date,
+                               rty_goal=rty_goal,
+                               data=fpy_data,
+                               failed_stations=failed_stations,
+                               current_time=current_time,
+                               get_ntf_details_for_station=get_ntf_details_for_station,
+                               get_der_details_for_station=get_der_details_for_station)
+    except Exception as e:
+        print(f"Error in model_specific: {e}")
+        return render_template('errors/500.html', error=str(e), current_time=current_time)
+
+@dashboard_bp.route('/export-excel')
+@login_required
 def export_excel():
     project = request.args.get('project')
     rty_goal = float(request.args.get('rty_goal', 90.0))
@@ -1261,6 +921,8 @@ def export_excel():
 
     bold = Font(bold=True)
     center = Alignment(horizontal="center", vertical="center", wrap_text=True)
+    header_fill = PatternFill(start_color="4361ee", end_color="4361ee", fill_type="solid")
+    header_font = Font(bold=True, color="FFFFFF")
 
     def write_section(title, df_or_rows, headers=None):
         # Safely merge title row
@@ -1273,16 +935,18 @@ def export_excel():
         if isinstance(df_or_rows, pd.DataFrame):
             ws.append(list(df_or_rows.columns))
             for cell in ws[ws.max_row]:
-                cell.font = bold
+                cell.font = header_font
                 cell.alignment = center
+                cell.fill = header_fill
             for row in df_or_rows.itertuples(index=False):
                 ws.append(list(row))
         else:
             if headers:
                 ws.append(headers)
                 for cell in ws[ws.max_row]:
-                    cell.font = bold
+                    cell.font = header_font
                     cell.alignment = center
+                    cell.fill = header_fill
             for row in df_or_rows:
                 ws.append(row)
 
@@ -1315,29 +979,28 @@ def export_excel():
                      download_name=f"{project}_full_report.xlsx",
                      as_attachment=True,
                      mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-
-
-
-@app.route('/export-pdf')
+ 
+@dashboard_bp.route('/export-pdf')
+@login_required
 def export_pdf():
     project = request.args.get('project')
     rty_goal = float(request.args.get('rty_goal', 90.0))
-
+ 
     token = get_token()
     fpy_data_raw = get_fpy(token, [project])
-
+ 
     if not fpy_data_raw:
         return "No data to export."
-
+ 
     # Clean FPY table
     desired_columns = ["project", "station", "inPut", "pass", "fail", "notFail", "der", "ntf", "rty"]
     fpy_data = [{col: row.get(col, "") for col in desired_columns} for row in fpy_data_raw]
     fpy_df = pd.DataFrame(fpy_data).astype(str)
-
+ 
     failed_stations = []
     ntf_blocks = []
     der_blocks = []
-
+ 
     try:
         actual_rty = float(str(fpy_df["rty"].iloc[0]).replace("%", ""))
         if actual_rty < rty_goal:
@@ -1345,7 +1008,7 @@ def export_pdf():
                 station = row.get("station")
                 ntf = float(str(row.get("ntf", "0")).replace("%", "")) if row.get("ntf") else None
                 der = float(str(row.get("der", "0")).replace("%", "")) if row.get("der") else None
-
+ 
                 if station in Config.NTF_GOALS and ntf is not None and ntf > Config.NTF_GOALS[station]:
                     failed_stations.append((station, "NTF", ntf, Config.NTF_GOALS[station]))
                     detail_data = get_station_ntf_details(token, project, station)
@@ -1355,7 +1018,7 @@ def export_pdf():
                         "symptomEnName": "Fault Description"
                     })
                     detail_df = detail_df[["SN", "Fault Description", "Computer Name"]]
-
+ 
                     top_computers = detail_df["Computer Name"].value_counts().head(3).to_dict()
                     rows = ""
                     for comp, count in top_computers.items():
@@ -1370,7 +1033,7 @@ def export_pdf():
                             <tbody>{rows}</tbody>
                         </table>
                     """)
-
+ 
                 if station in Config.DER_GOALS and der is not None and der > Config.DER_GOALS[station]:
                     failed_stations.append((station, "DER", der, Config.DER_GOALS[station]))
                     detail_df = pd.DataFrame(get_station_der_details(token, project, station)).rename(columns={
@@ -1379,10 +1042,10 @@ def export_pdf():
                         "symptomEnName": "Symptoms"
                     })
                     detail_df = detail_df[["SN", "Responsibility", "Symptoms"]]
-
+ 
                     top_symptoms = detail_df["Symptoms"].value_counts().head(3)
                     top_responsibilities = detail_df["Responsibility"].value_counts().head(3)
-
+ 
                     rows = ""
                     for i in range(3):
                         symptom = top_symptoms.index[i] if i < len(top_symptoms) else ""
@@ -1399,7 +1062,7 @@ def export_pdf():
                     """)
     except Exception as e:
         print("RTY analysis error:", e)
-
+ 
     # Build FPY table manually with wider project column
     fpy_html = "<table border='1' cellspacing='0' cellpadding='4' style='width:100%;'>"
     fpy_html += "<thead><tr>"
@@ -1409,7 +1072,7 @@ def export_pdf():
         else:
             fpy_html += f"<th style='font-size:10px; white-space:normal; word-wrap:break-word;'>{col}</th>"
     fpy_html += "</tr></thead><tbody>"
-
+ 
     for _, row in fpy_df.iterrows():
         fpy_html += "<tr>"
         for col in fpy_df.columns:
@@ -1419,171 +1082,143 @@ def export_pdf():
                 fpy_html += f"<td style='font-size:10px; white-space:normal; word-wrap:break-word;'>{row[col]}</td>"
         fpy_html += "</tr>"
     fpy_html += "</tbody></table>"
-
+ 
     # Build full HTML
     html = f"""
     <html><head><style>
     body {{ font-family: Arial; font-size: 11px; }}
     table {{ border-collapse: collapse; width: 100%; margin-bottom: 20px; }}
     th, td {{ border: 1px solid #ccc; padding: 4px; text-align: left; vertical-align: top; }}
-    th {{ background-color: #f0f0f0; }}
-    h1 {{ margin-bottom: 10px; }}
-    h2 {{ margin-top: 30px; }}
-    h3 {{ margin-top: 20px; }}
+    th {{ background-color: #4361ee; color: white; }}
+    h1 {{ margin-bottom: 10px; color: #4361ee; }}
+    h2 {{ margin-top: 30px; color: #4361ee; }}
+    h3 {{ margin-top: 20px; color: #4361ee; }}
     </style></head><body>
     <h1>FPY Report for {project}</h1>
     <p><strong>RTY Goal:</strong> {rty_goal}%</p>
-
+ 
     <h2>FPY Table</h2>
     {fpy_html}
     """
-
+ 
     if failed_stations:
         fail_df = pd.DataFrame(failed_stations, columns=["Station", "Metric", "Actual (%)", "Goal (%)"])
         html += "<h2>Failed Stations</h2>" + fail_df.to_html(index=False)
-
+ 
     if ntf_blocks or der_blocks:
         html += "<h2>Top Failure Analysis</h2>"
         html += "".join(ntf_blocks)
         html += "".join(der_blocks)
-
+ 
     html += "</body></html>"
-
-    # Convert to PDF
-    pdf = io.BytesIO()
-    pisa.CreatePDF(io.StringIO(html), dest=pdf)
-    pdf.seek(0)
-    return send_file(pdf,
+ 
+    # Convert to PDF using ReportLab
+    from reportlab.lib.pagesizes import letter, landscape
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.lib.styles import getSampleStyleSheet
+    from reportlab.lib import colors
+    from reportlab.lib.units import inch
+ 
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=landscape(letter))
+    elements = []
+    
+    styles = getSampleStyleSheet()
+    title_style = styles['Title']
+    heading_style = styles['Heading1']
+    normal_style = styles['Normal']
+    
+    # Title
+    elements.append(Paragraph(f"FPY Report for {project}", title_style))
+    elements.append(Spacer(1, 12))
+    elements.append(Paragraph(f"RTY Goal: {rty_goal}%", normal_style))
+    elements.append(Spacer(1, 12))
+    
+    # FPY Table
+    elements.append(Paragraph("FPY Table", heading_style))
+    elements.append(Spacer(1, 12))
+    
+    # Convert DataFrame to list of lists for ReportLab
+    fpy_data_list = [list(fpy_df.columns)] + fpy_df.values.tolist()
+    fpy_table = Table(fpy_data_list)
+    fpy_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+    ]))
+    elements.append(fpy_table)
+    elements.append(Spacer(1, 12))
+    
+    # Failed Stations
+    if failed_stations:
+        elements.append(Paragraph("Failed Stations", heading_style))
+        elements.append(Spacer(1, 12))
+        
+        failed_data = [["Station", "Metric", "Actual (%)", "Goal (%)"]] + failed_stations
+        failed_table = Table(failed_data)
+        failed_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ]))
+        elements.append(failed_table)
+        elements.append(Spacer(1, 12))
+    
+    # NTF Breakdown
+    if ntf_blocks:
+        elements.append(Paragraph("Top Failure Analysis — NTF", heading_style))
+        elements.append(Spacer(1, 12))
+        
+        for rows in ntf_blocks:
+            ntf_table = Table([["Top Computer → Qty", "Top 3 Faults → Qty"]] + rows)
+            ntf_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 10),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                ('GRID', (0, 0), (-1, -1), 1, colors.black)
+            ]))
+            elements.append(ntf_table)
+            elements.append(Spacer(1, 12))
+    
+    # DER Breakdown
+    if der_blocks:
+        elements.append(Paragraph("Top Failure Analysis — DER", heading_style))
+        elements.append(Spacer(1, 12))
+        
+        for rows in der_blocks:
+            der_table = Table([["Symptom → Qty", "Responsibility → Qty"]] + rows)
+            der_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 10),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                ('GRID', (0, 0), (-1, -1), 1, colors.black)
+            ]))
+            elements.append(der_table)
+            elements.append(Spacer(1, 12))
+    
+    # Build PDF
+    doc.build(elements)
+    
+    buffer.seek(0)
+    return send_file(buffer,
                      download_name=f"{project}_full_report.pdf",
                      as_attachment=True,
                      mimetype='application/pdf')
-
-
-from utils.api import (
-    get_token,
-    get_fpy_by_model,
-    get_station_ntf_details_by_model,
-    get_station_der_details_by_model
-)
-
-@app.route('/model-specific', methods=['GET', 'POST'])
-def model_specific():
-    token = get_token()
-    selected_model = None
-    station_type = "BE"
-    start_date = None
-    end_date = None
-    rty_goal = 90.0
-    fpy_data = []
-    failed_stations = []
-    fail_details = []
-
-    if request.method == 'POST':
-        selected_model = request.form.get('model_name')
-        station_type = request.form.get('station_type', 'BE')
-        start_date = request.form.get('start_date')
-        end_date = request.form.get('end_date')
-        rty_goal = float(request.form.get('rty_goal', 90.0))
-
-        fpy_data_raw = get_fpy_by_model(token, selected_model, station_type, start_date, end_date)
-
-        desired_columns = ["project", "station", "inPut", "pass", "fail", "notFail", "der", "ntf", "rty"]
-        fpy_data = [
-            {col: row.get(col, "") for col in desired_columns}
-            for row in fpy_data_raw
-        ]
-
-        if fpy_data and "rty" in fpy_data[0]:
-            try:
-                actual_rty = float(str(fpy_data[0]["rty"]).replace("%", ""))
-                if actual_rty < rty_goal:
-                    for row in fpy_data:
-                        station = row.get("station")
-                        ntf = float(str(row.get("ntf", "0")).replace("%", "")) if row.get("ntf") else None
-                        der = float(str(row.get("der", "0")).replace("%", "")) if row.get("der") else None
-
-                        if station in Config.NTF_GOALS and ntf is not None and ntf > Config.NTF_GOALS[station]:
-                            failed_stations.append((station, "NTF", ntf, Config.NTF_GOALS[station]))
-                            detail_data = get_station_ntf_details_by_model(token, selected_model, station, station_type, start_date, end_date)
-                            detail_df = pd.DataFrame(detail_data)
-                            detail_df = detail_df.rename(columns={
-                                "substation": "Computer Name",
-                                "sn": "SN",
-                                "symptomEnName": "Fault Description"
-                            })
-                            detail_df = detail_df[["SN", "Fault Description", "Computer Name"]]
-
-                            top_computers = detail_df["Computer Name"].value_counts().head(3).to_dict()
-                            top_faults_by_computer = {}
-                            for comp in top_computers:
-                                comp_faults = detail_df[detail_df["Computer Name"] == comp]
-                                faults = comp_faults["Fault Description"].value_counts().head(3).reset_index().values.tolist()
-                                top_faults_by_computer[comp] = faults
-
-                            fail_details.append({
-                                "station": station,
-                                "metric": "NTF",
-                                "actual": ntf,
-                                "goal": Config.NTF_GOALS[station],
-                                "top_computers": top_computers,
-                                "top_faults_by_computer": top_faults_by_computer
-                            })
-
-                        if station in Config.DER_GOALS and der is not None and der > Config.DER_GOALS[station]:
-                            failed_stations.append((station, "DER", der, Config.DER_GOALS[station]))
-                            detail_data = get_station_der_details_by_model(token, selected_model, station, station_type, start_date, end_date)
-                            detail_df = pd.DataFrame(detail_data)
-                            detail_df = detail_df.rename(columns={
-                                "sn": "SN",
-                                "responsibilityEnName": "Responsibility",
-                                "symptomEnName": "Symptoms"
-                            })
-                            detail_df = detail_df[["SN", "Responsibility", "Symptoms"]]
-                            top_symptoms = get_top_n_counts(detail_df, "Symptoms", 3)
-                            top_responsibilities = get_top_n_counts(detail_df, "Responsibility", 3)
-
-                            fail_details.append({
-                                "station": station,
-                                "metric": "DER",
-                                "actual": der,
-                                "goal": Config.DER_GOALS[station],
-                                "top_symptoms": top_symptoms.to_dict(orient="records"),
-                                "top_responsibilities": top_responsibilities.to_dict(orient="records")
-                            })
-            except Exception as e:
-                print("RTY analysis error:", e)
-
-    return render_template("model_specific.html",
-                           selected_model=selected_model,
-                           station_type=station_type,
-                           start_date=start_date,
-                           end_date=end_date,
-                           rty_goal=rty_goal,
-                           data=fpy_data,
-                           failed_stations=failed_stations,
-                           fail_details=fail_details)
-
-
-
-
-if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=5000)
-
-
-config.py:
-
-
-class Config:
-    BASE_URL = "http://10.61.248.12:8099/mesFactoryReport"
-    LOGIN_URL = f"{BASE_URL}/validUserInfoByMES"
-    PROJECT_LIST_URL = f"{BASE_URL}/linePlanQty/queryDayPlanProject"
-    FPY_URL = f"{BASE_URL}/fpyReport/projectFpyReport"
-    NTF_DETAIL_URL = f"{BASE_URL}/fpyReport/queryNoFailDetail"
-    DER_DETAIL_URL = f"{BASE_URL}/fpyReport/queryFailDetail"
-
-    USER_CODE = "rti02"
-    PASSWORD = "888888"
-    LANG_CODE = "en"
-
-    NTF_GOALS = {"PCURR": 0.50, "AUD": 1.50, "ANTWBG": 2.00}
-    DER_GOALS = {"RQC": 1.20, "RQC2": 0.10, "MMI1": 0.35, "MMI2": 0.50, "ANTWBG": 0.70, "AUD": 0.70}
