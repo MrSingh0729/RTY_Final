@@ -11,10 +11,22 @@ from utils.helpers import *
 from config import Config
 import json
 from routes import auth_bp, dashboard_bp, api_bp
+from extensions import db
 
 # Initialize Flask App
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "default_secret_key")
+
+# Configure SQLite database
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///fpy_dashboard.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Initialize database
+db.init_app(app)
+
+# Create database tables
+with app.app_context():
+    db.create_all()
 
 # Login Manager
 login_manager = LoginManager()
@@ -42,10 +54,22 @@ class User:
 def load_user(user_id):
     return User(user_id)
 
-# Add context processor to make datetime and Config available to templates
+# Add context processor to make datetime, Config, and column_headers available to templates
 @app.context_processor
 def inject_variables():
-    return dict(datetime=datetime, Config=Config)
+    column_headers = {
+        "project": "Model",
+        "station": "Station",
+        "inPut": "Input Qty",
+        "pass": "Good Qty",
+        "fail": "NG",
+        "notFail": "NDF",
+        "der": "NG Rate",
+        "ntf": "NDF Rate",
+        "rty": "RTY",
+        "py": "PY"
+    }
+    return dict(datetime=datetime, Config=Config, column_headers=column_headers)
 
 # Register Blueprints
 app.register_blueprint(auth_bp)

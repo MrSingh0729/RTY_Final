@@ -39,7 +39,14 @@
                     </div>
                     <div class="col-md-3 mb-3">
                         <label for="rty_goal" class="form-label">RTY Goal (%)</label>
-                        <input type="number" class="form-control" name="rty_goal" id="rty_goal" value="{{ rty_goal }}" step="0.1" min="0" max="100" required>
+                        <div class="input-group">
+                            <input type="number" class="form-control" name="rty_goal" id="rty_goal" 
+                                   value="{{ rty_goal }}" step="0.1" min="0" max="100" required>
+                            <div class="input-group-text">
+                                <span id="goal-source">Manual</span>
+                            </div>
+                        </div>
+                        <input type="hidden" id="auto-goal" value="">
                     </div>
                     <div class="col-md-3 mb-3 d-flex align-items-end">
                         <button type="submit" class="btn btn-primary w-100">
@@ -137,7 +144,7 @@
                     <thead>
                         <tr>
                             {% for col in data[0].keys() %}
-                            <th>{{ col }}</th>
+                            <th>{{ column_headers[col] }}</th>
                             {% endfor %}
                         </tr>
                     </thead>
@@ -370,16 +377,48 @@
         // Initialize DataTables on page load
         initDataTables();
         
-        // Refresh button functionality
-        document.getElementById('refresh-btn').addEventListener('click', function() {
-            const loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
-            loadingModal.show();
+        // Project selection handler
+        const projectSelect = document.getElementById('project');
+        const rtyGoalInput = document.getElementById('rty_goal');
+        const goalSource = document.getElementById('goal-source');
+        const autoGoalInput = document.getElementById('auto-goal');
+        
+        projectSelect.addEventListener('change', function() {
+            const projectName = this.value;
             
-            // Simulate data refresh
-            setTimeout(function() {
-                location.reload();
-            }, 1500);
+            // Fetch project goal via AJAX
+            fetch(`/api/project-goal?project=${projectName}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.goal && data.goal !== 'NA') {
+                        const goalValue = parseFloat(data.goal.replace('%', ''));
+                        rtyGoalInput.value = goalValue;
+                        goalSource.textContent = 'Auto';
+                        autoGoalInput.value = data.goal;
+                    } else {
+                        goalSource.textContent = 'Manual';
+                        autoGoalInput.value = '';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching project goal:', error);
+                    goalSource.textContent = 'Manual';
+                    autoGoalInput.value = '';
+                });
         });
+        
+        // Manual goal input handler
+        rtyGoalInput.addEventListener('input', function() {
+            goalSource.textContent = 'Manual';
+            autoGoalInput.value = '';
+        });
+        
+        // Initialize auto goal if available
+        {% if auto_goal %}
+        rtyGoalInput.value = {{ auto_goal }};
+        goalSource.textContent = 'Auto';
+        autoGoalInput.value = '{{ auto_goal }}%';
+        {% endif %}
         
         // Initialize RTY Gauge Chart if data is available
         {% if data and "rty" in data[0] %}
@@ -414,12 +453,6 @@
             }
         });
         {% endif %}
-        
-        // Form submission handling
-        document.getElementById('project-form').addEventListener('submit', function() {
-            const loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
-            loadingModal.show();
-        });
     });
 </script>
 {% endblock %}

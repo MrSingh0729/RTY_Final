@@ -11,4 +11,4 @@ class Config:
     LANG_CODE = "en"
 
     NTF_GOALS = {"PCURR": 0.50, "AUD": 1.50, "ANTWBG": 2.00}
-    DER_GOALS = {"RQC": 1.20, "RQC2": 0.10, "MMI1": 0.35, "MMI2": 0.50, "ANTWBG": 0.70, "AUD": 0.70}
+    DER_GOALS = {"RQC": 1.20, "RQC2": 0.10, "MMI": 0.35, "MMI2_All": 0.50, "ANTWBG": 0.70, "AUD": 0.70}
