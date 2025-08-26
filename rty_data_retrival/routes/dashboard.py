@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, send_file, jsonify, redirect, url_for
-from flask_login import login_required
+from flask_login import login_required, current_user
 import pandas as pd
 from models import ModelDescription, ProjectGoal, FPYAutoData
 import io
@@ -163,7 +163,9 @@ def index():
 @dashboard_bp.route('/home')
 def home():
     current_time = datetime.now().strftime('%H:%M')
-    return render_template('home.html', current_time=current_time)
+    # Check if user is logged in
+    logged_in = current_user.is_authenticated
+    return render_template('home.html', current_time=current_time, logged_in=logged_in)
 
 
 @dashboard_bp.route('/custom-dashboard')

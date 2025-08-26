@@ -14,12 +14,21 @@
                         Advanced First Pass Yield Analytics Platform for Manufacturing Excellence
                     </p>
                     <div class="d-flex justify-content-center gap-3">
-                        <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary btn-lg px-4">
-                            <i class="fas fa-chart-line me-2"></i>Go to Dashboard
-                        </a>
-                        <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary btn-lg px-4">
-                            <i class="fas fa-sign-in-alt me-2"></i>Login
-                        </a>
+                        {% if logged_in %}
+                            <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary btn-lg px-4">
+                                <i class="fas fa-chart-line me-2"></i>Go to Dashboard
+                            </a>
+                            <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger btn-lg px-4">
+                                <i class="fas fa-sign-out-alt me-2"></i>Logout
+                            </a>
+                        {% else %}
+                            <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary btn-lg px-4">
+                                <i class="fas fa-chart-line me-2"></i>Go to Dashboard
+                            </a>
+                            <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary btn-lg px-4">
+                                <i class="fas fa-sign-in-alt me-2"></i>Login
+                            </a>
+                        {% endif %}
                     </div>
                 </div>
             </div>
