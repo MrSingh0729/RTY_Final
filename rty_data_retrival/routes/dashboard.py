@@ -1146,210 +1146,6 @@ def export_pdf_model():
     
     
     
-@dashboard_bp.route('/rty-analysis-report')
-@login_required
-def rty_analysis_report():
-    current_time = datetime.now().strftime('%H:%M')
-    try:
-        # Get token
-        token = get_token()
-        
-        # Get project list
-        projects = get_project_list(token)
-        
-        # Get today's data from 08:00AM to now
-        now = datetime.now()
-        start = now.replace(hour=8, minute=0, second=0, microsecond=0)
-        
-        # Get FPY data
-        fpy_data_raw = get_fpy(token, projects, start, now)
-        
-        # Get model descriptions from database to filter out 2G models and get goals
-        db_models = {model.model_name: model for model in ModelDescription.query.all()}
-        
-        # Process data and filter out 2G models
-        processed_data = []
-        models_not_meeting_goal = []
-        
-        # Group data by project/model
-        project_data = {}
-        
-        for record in fpy_data_raw:
-            project = record.get('project', '')
-            model_info = db_models.get(project)
-            
-            # Skip 2G models
-            if model_info and model_info.technology == '2G':
-                continue
-                
-            # Skip if no model info found
-            if not model_info:
-                continue
-                
-            # Extract values
-            input_qty = int(record.get('inPut', 0))
-            pass_qty = int(record.get('pass', 0))
-            fail_qty = int(record.get('fail', 0))
-            not_fail_qty = int(record.get('notFail', 0))
-            der_val = float(str(record.get('der', '0')).replace('%', '')) if record.get('der') else 0
-            ntf_val = float(str(record.get('ntf', '0')).replace('%', '')) if record.get('ntf') else 0
-            rty_val = float(str(record.get('rty', '0')).replace('%', '')) if record.get('rty') else 0
-            
-            # Get goal from model info
-            goal_str = model_info.goal.replace('%', '') if model_info.goal and model_info.goal != 'NA' else '0'
-            goal_val = float(goal_str) if goal_str else 0
-            
-            # Create processed record
-            processed_record = {
-                "project": project,
-                "station": record.get('station', ''),
-                "inPut": input_qty,
-                "pass": pass_qty,
-                "fail": fail_qty,
-                "notFail": not_fail_qty,
-                "der": der_val,
-                "ntf": ntf_val,
-                "rty": rty_val,
-                "goal": goal_val,
-                "technology": model_info.technology,
-                "position": model_info.position,
-                "brand": model_info.brand
-            }
-            
-            processed_data.append(processed_record)
-            
-            # Group by project for later analysis
-            if project not in project_data:
-                project_data[project] = []
-            project_data[project].append(processed_record)
-        
-        # Calculate overall RTY for each project and check against goal
-        for project, records in project_data.items():
-            # Calculate total input and pass for the project
-            total_input = sum(record['inPut'] for record in records)
-            total_pass = sum(record['pass'] for record in records)
-            
-            # Calculate overall RTY
-            overall_rty = (total_pass / total_input * 100) if total_input > 0 else 0
-            
-            # Get model info
-            model_info = db_models.get(project)
-            goal_val = model_info.goal.replace('%', '') if model_info.goal and model_info.goal != 'NA' else '0'
-            goal_val = float(goal_val) if goal_val else 0
-            
-            # Check if goal is not achieved
-            if overall_rty < goal_val and goal_val > 0:
-                models_not_meeting_goal.append({
-                    "project": project,
-                    "technology": model_info.technology,
-                    "position": model_info.position,
-                    "brand": model_info.brand,
-                    "goal": goal_val,
-                    "actual_rty": overall_rty,
-                    "gap": goal_val - overall_rty,
-                    "total_input": total_input,
-                    "total_pass": total_pass,
-                    "total_fail": sum(record['fail'] for record in records),
-                    "total_ntf": sum(record['notFail'] for record in records),
-                    "stations": records
-                })
-        
-        # Sort by gap (largest gap first)
-        models_not_meeting_goal.sort(key=lambda x: x['gap'], reverse=True)
-        
-        # Calculate summary statistics
-        total_models = len(project_data)
-        models_meeting_goal = total_models - len(models_not_meeting_goal)
-        compliance_rate = (models_meeting_goal / total_models * 100) if total_models > 0 else 0
-        
-        # Calculate average gap
-        avg_gap = sum(model['gap'] for model in models_not_meeting_goal) / len(models_not_meeting_goal) if models_not_meeting_goal else 0
-        
-        # Calculate total input for all models
-        total_input_all = sum(model['total_input'] for model in models_not_meeting_goal)
-        
-        # Calculate potential improvement if all models met goal
-        potential_improvement = 0
-        for model in models_not_meeting_goal:
-            if model['total_input'] > 0:
-                potential_units = model['total_input'] * (model['gap'] / 100)
-                potential_improvement += potential_units
-        
-        # Prepare summary data
-        summary_data = {
-            "total_models": total_models,
-            "models_meeting_goal": models_meeting_goal,
-            "models_not_meeting_goal": len(models_not_meeting_goal),
-            "compliance_rate": compliance_rate,
-            "avg_gap": avg_gap,
-            "total_input": total_input_all,
-            "potential_improvement": potential_improvement
-        }
-        
-        # Group by technology for analysis
-        tech_analysis = {}
-        for model in models_not_meeting_goal:
-            tech = model['technology']
-            if tech not in tech_analysis:
-                tech_analysis[tech] = {
-                    "count": 0,
-                    "total_gap": 0,
-                    "total_input": 0,
-                    "models": []
-                }
-            
-            tech_analysis[tech]["count"] += 1
-            tech_analysis[tech]["total_gap"] += model['gap']
-            tech_analysis[tech]["total_input"] += model['total_input']
-            tech_analysis[tech]["models"].append(model)
-        
-        # Group by position for analysis
-        position_analysis = {}
-        for model in models_not_meeting_goal:
-            position = model['position']
-            if position not in position_analysis:
-                position_analysis[position] = {
-                    "count": 0,
-                    "total_gap": 0,
-                    "total_input": 0,
-                    "models": []
-                }
-            
-            position_analysis[position]["count"] += 1
-            position_analysis[position]["total_gap"] += model['gap']
-            position_analysis[position]["total_input"] += model['total_input']
-            position_analysis[position]["models"].append(model)
-        
-        # Group by brand for analysis
-        brand_analysis = {}
-        for model in models_not_meeting_goal:
-            brand = model['brand']
-            if brand not in brand_analysis:
-                brand_analysis[brand] = {
-                    "count": 0,
-                    "total_gap": 0,
-                    "total_input": 0,
-                    "models": []
-                }
-            
-            brand_analysis[brand]["count"] += 1
-            brand_analysis[brand]["total_gap"] += model['gap']
-            brand_analysis[brand]["total_input"] += model['total_input']
-            brand_analysis[brand]["models"].append(model)
-        
-        return render_template('dashboard/rty_analysis_report.html', 
-                               models_not_meeting_goal=models_not_meeting_goal,
-                               summary_data=summary_data,
-                               tech_analysis=tech_analysis,
-                               position_analysis=position_analysis,
-                               brand_analysis=brand_analysis,
-                               current_time=current_time)
-    except Exception as e:
-        current_time = datetime.now().strftime('%H:%M')
-        return render_template('errors/500.html', error=str(e), current_time=current_time)
-    
-    
-    
 @dashboard_bp.route('/models-rty-summary')
 @login_required
 def models_rty_summary():
@@ -1735,3 +1531,412 @@ def models_rty_summary():
     except Exception as e:
         current_time = datetime.now().strftime('%H:%M')
         return render_template('errors/500.html', error=str(e), current_time=current_time)
+        
+        
+        
+        
+@dashboard_bp.route('/model-analysis-date-range', methods=['GET', 'POST'])
+@login_required
+def model_analysis_date_range():
+    current_time = datetime.now().strftime('%H:%M')
+    try:
+        # Get all models from database
+        models = ModelDescription.query.all()
+        
+        # Initialize variables
+        selected_model = None
+        station_type = "BE"
+        start_date = None
+        end_date = None
+        rty_goal = None
+        auto_goal = None
+        data = []
+        failed_stations = []
+        fail_details = []
+        date_range = "Last Day"  # Default selection
+        
+        if request.method == 'POST':
+            selected_model = request.form.get('model_name')
+            station_type = request.form.get('station_type', 'BE')
+            rty_goal = float(request.form.get('rty_goal', 0))
+            auto_goal = request.form.get('auto_goal')
+            date_range = request.form.get('date_range', 'Last Day')
+            
+            # Calculate date range based on selection
+            now = datetime.now()
+            
+            if date_range == "Last Day":
+                # Yesterday 08:00 AM to today 08:00 AM
+                end_date = now.replace(hour=8, minute=0, second=0, microsecond=0)
+                start_date = end_date - timedelta(days=1)
+            elif date_range == "Last Week":
+                # Previous week's Monday 08:00 AM to this week's Monday 08:00 AM
+                today_weekday = now.weekday()  # Monday is 0, Sunday is 6
+                days_since_monday = today_weekday
+                this_monday = now.replace(hour=8, minute=0, second=0, microsecond=0) - timedelta(days=days_since_monday)
+                start_date = this_monday - timedelta(weeks=1)
+                end_date = this_monday
+            elif date_range == "This Week":
+                # This week's Monday 08:00 AM to next Monday 08:00 AM (or now if next Monday hasn't come)
+                today_weekday = now.weekday()
+                days_since_monday = today_weekday
+                this_monday = now.replace(hour=8, minute=0, second=0, microsecond=0) - timedelta(days=days_since_monday)
+                start_date = this_monday
+                end_date = min(this_monday + timedelta(weeks=1), now)
+            elif date_range == "Last Month":
+                # Previous month's first day 08:00 AM to this month's first day 08:00 AM
+                first_day_current_month = now.replace(day=1, hour=8, minute=0, second=0, microsecond=0)
+                last_day_prev_month = first_day_current_month - timedelta(days=1)
+                start_date = last_day_prev_month.replace(day=1, hour=8, minute=0, second=0, microsecond=0)
+                end_date = first_day_current_month
+            elif date_range == "This Month":
+                # This month's first day 08:00 AM to next month's first day 08:00 AM (or now if next month hasn't come)
+                first_day_current_month = now.replace(day=1, hour=8, minute=0, second=0, microsecond=0)
+                if now.month == 12:
+                    next_month = now.replace(year=now.year+1, month=1, day=1)
+                else:
+                    next_month = now.replace(month=now.month+1, day=1)
+                start_date = first_day_current_month
+                end_date = min(next_month.replace(hour=8, minute=0, second=0, microsecond=0), now)
+            
+            # Format dates for display
+            start_date_str = start_date.strftime('%Y-%m-%dT%H:%M')
+            end_date_str = end_date.strftime('%Y-%m-%dT%H:%M')
+            
+            # Get token
+            token = get_token()
+            
+            # Get FPY data for the selected model and date range
+            fpy_data = get_fpy_by_model(
+                token, 
+                selected_model, 
+                station_type, 
+                start_date_str, 
+                end_date_str
+            )
+            
+            # Process data
+            if fpy_data:
+                # Get model info
+                model_info = ModelDescription.query.filter_by(model_name=selected_model).first()
+                
+                # Calculate overall metrics
+                total_input = sum(int(record.get('inPut', 0)) for record in fpy_data)
+                total_pass = sum(int(record.get('pass', 0)) for record in fpy_data)
+                total_fail = sum(int(record.get('fail', 0)) for record in fpy_data)
+                total_ntf = sum(int(record.get('notFail', 0)) for record in fpy_data)
+                
+                # Calculate RTY
+                overall_rty = (total_pass / total_input * 100) if total_input > 0 else 0
+                
+                # Check if goal is achieved
+                goal_achieved = overall_rty >= rty_goal if rty_goal > 0 else True
+                
+                # Prepare data for display
+                data = []
+                for record in fpy_data:
+                    data.append({
+                        "project": record.get('project'),
+                        "station": record.get('station'),
+                        "inPut": record.get('inPut'),
+                        "pass": record.get('pass'),
+                        "fail": record.get('fail'),
+                        "notFail": record.get('notFail'),
+                        "der": record.get('der'),
+                        "ntf": record.get('ntf'),
+                        "rty": record.get('rty'),
+                        "py": record.get('py')
+                    })
+                
+                # Check for stations not meeting goals
+                from config import Config
+                failed_stations = []
+                fail_details = []
+                
+                for record in fpy_data:
+                    station = record.get('station')
+                    der_val = float(str(record.get('der', '0')).replace('%', '')) if record.get('der') else 0
+                    ntf_val = float(str(record.get('ntf', '0')).replace('%', '')) if record.get('ntf') else 0
+                    
+                    # Check if station meets goals
+                    station_ntf_goal = Config.NTF_GOALS.get(station, float('inf'))
+                    station_der_goal = Config.DER_GOALS.get(station, float('inf'))
+                    
+                    if ntf_val > station_ntf_goal:
+                        failed_stations.append((station, "NTF", f"{ntf_val:.2f}%", f"{station_ntf_goal:.2f}%"))
+                        
+                        # Get NTF details
+                        try:
+                            ntf_details = get_station_ntf_details_by_model(
+                                token, selected_model, station, station_type, 
+                                start_date_str, end_date_str
+                            )
+                            
+                            if ntf_details:
+                                ntf_df = pd.DataFrame(ntf_details)
+                                if not ntf_df.empty:
+                                    ntf_df = ntf_df.rename(columns={
+                                        "substation": "Computer Name",
+                                        "sn": "SN",
+                                        "symptomEnName": "Fault Description"
+                                    })
+                                    
+                                    top_computers = ntf_df["Computer Name"].value_counts().head(3).to_dict()
+                                    top_faults_by_computer = {}
+                                    
+                                    for comp in top_computers:
+                                        comp_faults = ntf_df[ntf_df["Computer Name"] == comp]
+                                        faults = comp_faults["Fault Description"].value_counts().head(3).reset_index().values.tolist()
+                                        top_faults_by_computer[comp] = faults
+                                    
+                                    fail_details.append({
+                                        "station": station,
+                                        "metric": "NTF",
+                                        "actual": ntf_val,
+                                        "goal": station_ntf_goal,
+                                        "top_computers": top_computers,
+                                        "top_faults_by_computer": top_faults_by_computer
+                                    })
+                        except Exception as e:
+                            print(f"Error getting NTF details: {e}")
+                    
+                    if der_val > station_der_goal:
+                        failed_stations.append((station, "DER", f"{der_val:.2f}%", f"{station_der_goal:.2f}%"))
+                        
+                        # Get DER details
+                        try:
+                            der_details = get_station_der_details_by_model(
+                                token, selected_model, station, station_type, 
+                                start_date_str, end_date_str
+                            )
+                            
+                            if der_details:
+                                der_df = pd.DataFrame(der_details)
+                                if not der_df.empty:
+                                    der_df = der_df.rename(columns={
+                                        "sn": "SN",
+                                        "responsibilityEnName": "Responsibility",
+                                        "symptomEnName": "Symptoms"
+                                    })
+                                    
+                                    top_symptoms = get_top_n_counts(der_df, "Symptoms", 3)
+                                    top_responsibilities = get_top_n_counts(der_df, "Responsibility", 3)
+                                    
+                                    fail_details.append({
+                                        "station": station,
+                                        "metric": "DER",
+                                        "actual": der_val,
+                                        "goal": station_der_goal,
+                                        "top_symptoms": top_symptoms.to_dict(orient="records"),
+                                        "top_responsibilities": top_responsibilities.to_dict(orient="records")
+                                    })
+                        except Exception as e:
+                            print(f"Error getting DER details: {e}")
+        
+        return render_template(
+            'dashboard/model_analysis_date_range.html',
+            models=models,
+            selected_model=selected_model,
+            station_type=station_type,
+            start_date=start_date_str if start_date else '',
+            end_date=end_date_str if end_date else '',
+            rty_goal=rty_goal,
+            auto_goal=auto_goal,
+            data=data,
+            failed_stations=failed_stations,
+            fail_details=fail_details,
+            date_range=date_range,
+            current_time=current_time
+        )
+    except Exception as e:
+        current_time = datetime.now().strftime('%H:%M')
+        return render_template('errors/500.html', error=str(e), current_time=current_time)
+        
+        
+        
+        
+@dashboard_bp.route('/export-excel-model-date-range')
+@login_required
+def export_excel_model_date_range():
+    try:
+        model_name = request.args.get('model_name')
+        station_type = request.args.get('station_type', 'BE')
+        date_range = request.args.get('date_range', 'Last Day')
+        rty_goal = float(request.args.get('rty_goal', 0))
+        
+        # Calculate date range based on selection
+        now = datetime.now()
+        
+        if date_range == "Last Day":
+            end_date = now.replace(hour=8, minute=0, second=0, microsecond=0)
+            start_date = end_date - timedelta(days=1)
+        elif date_range == "Last Week":
+            today_weekday = now.weekday()
+            days_since_monday = today_weekday
+            this_monday = now.replace(hour=8, minute=0, second=0, microsecond=0) - timedelta(days=days_since_monday)
+            start_date = this_monday - timedelta(weeks=1)
+            end_date = this_monday
+        elif date_range == "This Week":
+            today_weekday = now.weekday()
+            days_since_monday = today_weekday
+            this_monday = now.replace(hour=8, minute=0, second=0, microsecond=0) - timedelta(days=days_since_monday)
+            start_date = this_monday
+            end_date = min(this_monday + timedelta(weeks=1), now)
+        elif date_range == "Last Month":
+            first_day_current_month = now.replace(day=1, hour=8, minute=0, second=0, microsecond=0)
+            last_day_prev_month = first_day_current_month - timedelta(days=1)
+            start_date = last_day_prev_month.replace(day=1, hour=8, minute=0, second=0, microsecond=0)
+            end_date = first_day_current_month
+        elif date_range == "This Month":
+            first_day_current_month = now.replace(day=1, hour=8, minute=0, second=0, microsecond=0)
+            if now.month == 12:
+                next_month = now.replace(year=now.year+1, month=1, day=1)
+            else:
+                next_month = now.replace(month=now.month+1, day=1)
+            start_date = first_day_current_month
+            end_date = min(next_month.replace(hour=8, minute=0, second=0, microsecond=0), now)
+        
+        # Format dates
+        start_date_str = start_date.strftime('%Y-%m-%dT%H:%M')
+        end_date_str = end_date.strftime('%Y-%m-%dT%H:%M')
+        
+        # Get token and data
+        token = get_token()
+        fpy_data = get_fpy_by_model(token, model_name, station_type, start_date_str, end_date_str)
+        
+        # Create Excel file
+        output = io.BytesIO()
+        workbook = Workbook()
+        worksheet = workbook.active
+        worksheet.title = "Model Analysis"
+        
+        # Write headers
+        headers = ["Station", "Input Qty", "Good Qty", "NG", "NDF", "NG Rate", "NDF Rate", "RTY"]
+        for col_num, header in enumerate(headers, 1):
+            worksheet.cell(row=1, column=col_num, value=header)
+            worksheet.cell(row=1, column=col_num).font = Font(bold=True)
+        
+        # Write data
+        for row_num, record in enumerate(fpy_data, 2):
+            worksheet.cell(row=row_num, column=1, value=record.get('station'))
+            worksheet.cell(row=row_num, column=2, value=record.get('inPut'))
+            worksheet.cell(row=row_num, column=3, value=record.get('pass'))
+            worksheet.cell(row=row_num, column=4, value=record.get('fail'))
+            worksheet.cell(row=row_num, column=5, value=record.get('notFail'))
+            worksheet.cell(row=row_num, column=6, value=record.get('der'))
+            worksheet.cell(row=row_num, column=7, value=record.get('ntf'))
+            worksheet.cell(row=row_num, column=8, value=record.get('rty'))
+        
+        # Auto-adjust column widths
+        for column in worksheet.columns:
+            max_length = 0
+            column_letter = column[0].column_letter
+            for cell in column:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            adjusted_width = (max_length + 2)
+            worksheet.column_dimensions[column_letter].width = adjusted_width
+        
+        workbook.save(output)
+        output.seek(0)
+        
+        return send_file(
+            output,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            as_attachment=True,
+            download_name=f"{model_name}_analysis_{date_range.replace(' ', '_')}.xlsx"
+        )
+    except Exception as e:
+        return f"Error exporting data: {str(e)}", 500
+ 
+@dashboard_bp.route('/export-pdf-model-date-range')
+@login_required
+def export_pdf_model_date_range():
+    try:
+        model_name = request.args.get('model_name')
+        station_type = request.args.get('station_type', 'BE')
+        date_range = request.args.get('date_range', 'Last Day')
+        rty_goal = float(request.args.get('rty_goal', 0))
+        
+        # Calculate date range based on selection
+        now = datetime.now()
+        
+        if date_range == "Last Day":
+            end_date = now.replace(hour=8, minute=0, second=0, microsecond=0)
+            start_date = end_date - timedelta(days=1)
+        elif date_range == "Last Week":
+            today_weekday = now.weekday()
+            days_since_monday = today_weekday
+            this_monday = now.replace(hour=8, minute=0, second=0, microsecond=0) - timedelta(days=days_since_monday)
+            start_date = this_monday - timedelta(weeks=1)
+            end_date = this_monday
+        elif date_range == "This Week":
+            today_weekday = now.weekday()
+            days_since_monday = today_weekday
+            this_monday = now.replace(hour=8, minute=0, second=0, microsecond=0) - timedelta(days=days_since_monday)
+            start_date = this_monday
+            end_date = min(this_monday + timedelta(weeks=1), now)
+        elif date_range == "Last Month":
+            first_day_current_month = now.replace(day=1, hour=8, minute=0, second=0, microsecond=0)
+            last_day_prev_month = first_day_current_month - timedelta(days=1)
+            start_date = last_day_prev_month.replace(day=1, hour=8, minute=0, second=0, microsecond=0)
+            end_date = first_day_current_month
+        elif date_range == "This Month":
+            first_day_current_month = now.replace(day=1, hour=8, minute=0, second=0, microsecond=0)
+            if now.month == 12:
+                next_month = now.replace(year=now.year+1, month=1, day=1)
+            else:
+                next_month = now.replace(month=now.month+1, day=1)
+            start_date = first_day_current_month
+            end_date = min(next_month.replace(hour=8, minute=0, second=0, microsecond=0), now)
+        
+        # Format dates
+        start_date_str = start_date.strftime('%Y-%m-%dT%H:%M')
+        end_date_str = end_date.strftime('%Y-%m-%dT%H:%M')
+        
+        # Get token and data
+        token = get_token()
+        fpy_data = get_fpy_by_model(token, model_name, station_type, start_date_str, end_date_str)
+        
+        # Create PDF content (simplified for this example)
+        pdf_content = f"""
+        Model Analysis Report
+        =====================
+        
+        Model: {model_name}
+        Date Range: {date_range}
+        Station Type: {station_type}
+        RTY Goal: {rty_goal}%
+        
+        Station Performance Data:
+        """
+        
+        for record in fpy_data:
+            pdf_content += f"""
+            Station: {record.get('station')}
+            Input: {record.get('inPut')}
+            Pass: {record.get('pass')}
+            Fail: {record.get('fail')}
+            NDF: {record.get('notFail')}
+            DER: {record.get('der')}
+            NTF: {record.get('ntf')}
+            RTY: {record.get('rty')}
+            
+            """
+        
+        # Create a simple text file (in a real implementation, you would use a PDF library like ReportLab)
+        output = io.BytesIO()
+        output.write(pdf_content.encode('utf-8'))
+        output.seek(0)
+        
+        return send_file(
+            output,
+            mimetype='text/plain',
+            as_attachment=True,
+            download_name=f"{model_name}_analysis_{date_range.replace(' ', '_')}.txt"
+        )
+    except Exception as e:
+        return f"Error exporting PDF: {str(e)}", 500

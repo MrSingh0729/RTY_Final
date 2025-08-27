@@ -40,34 +40,30 @@
                 class="menu-item {% if request.endpoint == 'dashboard.home' %}active{% endif %}">
                 <i class="fas fa-home me-2"></i> Home
             </a>
-            <a href="{{ url_for('dashboard.index') }}"
-                class="menu-item {% if request.endpoint == 'dashboard.index' %}active{% endif %}">
-                <i class="fas fa-home me-2"></i> Dashboard
-            </a>
             <a href="{{ url_for('dashboard.custom_dashboard') }}"
                 class="menu-item {% if request.endpoint == 'dashboard.custom_dashboard' %}active{% endif %}">
-                <i class="fas fa-chart-bar me-2"></i> Custom Dashboard
+                <i class="fas fa-chart-bar me-2"></i> Dashboard
             </a>
             <a href="{{ url_for('dashboard.auto_data') }}"
                 class="menu-item {% if request.endpoint == 'dashboard.auto_data' %}active{% endif %}">
-                <i class="fas fa-bolt me-2"></i> Auto Data
+                <i class="fas fa-bolt me-2"></i> Live RTY Data
             </a>
             <a href="{{ url_for('dashboard.project_specific') }}"
                 class="menu-item {% if request.endpoint == 'dashboard.project_specific' %}active{% endif %}">
-                <i class="fas fa-project-diagram me-2"></i> Project Specific
+                <i class="fas fa-project-diagram me-2"></i> Single Model Live ANA
             </a>
             <a href="{{ url_for('dashboard.model_specific') }}"
                 class="menu-item {% if request.endpoint == 'dashboard.model_specific' %}active{% endif %}">
-                <i class="fas fa-cogs me-2"></i> Model Specific
-            </a>
-            <a href="{{ url_for('dashboard.rty_analysis_report') }}"
-                class="menu-item {% if request.endpoint == 'dashboard.model_specific' %}active{% endif %}">
-                <i class="fas fa-cogs me-2"></i> RTY Analysis
+                <i class="fas fa-cogs me-2"></i> Model Wise ANA
             </a>
             <a href="{{ url_for('dashboard.models_rty_summary') }}"
-                class="menu-item {% if request.endpoint == 'dashboard.model_specific' %}active{% endif %}">
-                <i class="fas fa-cogs me-2"></i> MModels RTY Summary
-            </a>
+            class="menu-item {% if request.endpoint == 'dashboard.dashboard.models_rty_summary' %}active{% endif %}">
+            <i class="fas fa-cogs me-2"></i> All Models Live ANA
+        </a>
+        <a href="{{ url_for('dashboard.model_analysis_date_range') }}"
+            class="menu-item {% if request.endpoint == 'dashboard.model_analysis_date_range' %}active{% endif %}">
+            <i class="fas fa-cogs me-2"></i> Model ANA By Range
+        </a>
         </div>
         <div class="sidebar-footer">
             <div class="user-info">

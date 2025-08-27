@@ -5,7 +5,7 @@
     <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="h3 mb-0 text-gray-800">Models RTY Summary</h1>
+            <h1 class="h3 mb-0 text-gray-800">Models RTY Summary Report</h1>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
@@ -28,156 +28,147 @@
             </div>
         </div>
     </div>
-    
-    <!-- RTY Formula Card -->
+
+    <!-- Executive Summary -->
     <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">RTY Calculation Formula</h6>
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">Executive Summary</h6>
+            <div class="dropdown no-arrow">
+                <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown"
+                    aria-expanded="false">
+                    <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                </a>
+                <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                    aria-labelledby="dropdownMenuLink">
+                    <div class="dropdown-header">Actions:</div>
+                    <a class="dropdown-item" href="#" id="refresh-data">Refresh Data</a>
+                </div>
+            </div>
         </div>
         <div class="card-body">
-            <div class="row align-items-center">
-                <div class="col-md-8">
-                    <p class="mb-0"><strong>RTY (%) = (1 - (Total NG Qty of All Stations for All Models + Total NDF Qty of All Stations for All Models) / (Total Input of Station PCURR for All Models)) × 100</strong></p>
+            <div class="row">
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-primary shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Models
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ summary_data.total_models }}
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-mobile-alt fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-4 text-end">
-                    <div class="d-flex justify-content-end">
-                        <div class="me-3">
-                            <small class="text-muted">Total PCURR Input:</small>
-                            <div class="fw-bold">{{ "%.0f"|format(summary_data.total_pcurr_input) }}</div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-warning shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Models Not
+                                        Meeting Goal</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{
+                                        summary_data.models_not_achieving_goal }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
                         </div>
-                        <div class="me-3">
-                            <small class="text-muted">Total NG:</small>
-                            <div class="fw-bold">{{ "%.0f"|format(summary_data.total_ng_all) }}</div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-danger shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Achievement
+                                        Rate</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{
+                                        "%.1f"|format(summary_data.achievement_rate) }}%</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-percentage fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <small class="text-muted">Total NDF:</small>
-                            <div class="fw-bold">{{ "%.0f"|format(summary_data.total_ndf_all) }}</div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-info shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Overall RTY</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{
+                                        "%.2f"|format(summary_data.overall_rty) }}%</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-xl-6 mb-4">
+                    <div class="card border-left-success shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total PCURR
+                                        Input</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{
+                                        "%.0f"|format(summary_data.total_pcurr_input) }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-inbox fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-6 mb-4">
+                    <div class="card border-left-secondary shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">Total NG + NDF</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{
+                                        "%.0f"|format(summary_data.total_ng_all + summary_data.total_ndf_all) }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-times-circle fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Summary Statistics -->
-    <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Models</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ summary_data.total_models }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-mobile-alt fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Achieving Goal</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ summary_data.models_achieving_goal }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Not Achieving Goal</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ summary_data.models_not_achieving_goal }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Overall RTY</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ "%.2f"|format(summary_data.overall_rty) }}%</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-chart-line fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Pie Charts -->
-    <div class="row mb-4">
-        <div class="col-xl-6 mb-4">
-            <div class="card shadow h-100">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Average RTY by Technology</h6>
-                </div>
-                <div class="card-body">
-                    <div class="chart-pie pt-4">
-                        <canvas id="techChart"></canvas>
-                    </div>
-                    <div class="mt-4 text-center small">
-                        {% for tech, avg_rty in summary_data.tech_avg_rty.items() %}
-                        <span class="mr-2">
-                            <i class="fas fa-circle" style="color: {{ loop.cycle(['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b']) }}"></i> {{ tech }}: {{ "%.1f"|format(avg_rty) }}%
-                        </span>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-xl-6 mb-4">
-            <div class="card shadow h-100">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Average RTY by Position Category</h6>
-                </div>
-                <div class="card-body">
-                    <div class="chart-pie pt-4">
-                        <canvas id="positionChart"></canvas>
-                    </div>
-                    <div class="mt-4 text-center small">
-                        {% for position, avg_rty in summary_data.position_avg_rty.items() %}
-                        <span class="mr-2">
-                            <i class="fas fa-circle" style="color: {{ loop.cycle(['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b']) }}"></i> {{ position }}: {{ "%.1f"|format(avg_rty) }}%
-                        </span>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Models RTY Summary Table -->
+
+    <!-- Models Summary Table -->
     <div class="card shadow mb-4">
         <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
             <h6 class="m-0 font-weight-bold text-primary">Models RTY Summary</h6>
             <div class="dropdown no-arrow">
-                <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+                <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown"
+                    aria-expanded="false">
                     <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
                 </a>
-                <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+                <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                    aria-labelledby="dropdownMenuLink">
                     <div class="dropdown-header">Actions:</div>
                     <a class="dropdown-item" href="#" id="export-summary">Export Summary</a>
                 </div>
@@ -192,10 +183,10 @@
                             <th>Technology</th>
                             <th>Position</th>
                             <th>Brand</th>
-                            <th>RTY Goal</th>
+                            <th>Goal</th>
                             <th>Actual RTY</th>
-                            <th>Status</th>
                             <th>Gap</th>
+                            <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -207,18 +198,12 @@
                             <td>{{ model.brand }}</td>
                             <td>{{ "%.1f"|format(model.goal) }}%</td>
                             <td>{{ "%.1f"|format(model.actual_rty) }}%</td>
+                            <td>{{ "%.1f"|format(model.gap) }}%</td>
                             <td>
                                 {% if model.status == "Achieved" %}
-                                    <span class="badge bg-success">{{ model.status }}</span>
+                                <span class="badge bg-success">{{ model.status }}</span>
                                 {% else %}
-                                    <span class="badge bg-danger">{{ model.status }}</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if model.gap >= 0 %}
-                                    <span class="text-success">{{ "%.1f"|format(model.gap) }}%</span>
-                                {% else %}
-                                    <span class="text-danger">{{ "%.1f"|format(model.gap) }}%</span>
+                                <span class="badge bg-danger">{{ model.status }}</span>
                                 {% endif %}
                             </td>
                         </tr>
@@ -228,226 +213,301 @@
             </div>
         </div>
     </div>
-    
-    <!-- Models Not Achieving Goal Details -->
+
+    <!-- Detailed Station Analysis for Models Not Achieving Goals -->
     {% if models_not_achieving_goal %}
     <div class="card shadow mb-4">
         <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-danger">Models Not Achieving RTY Goal - Detailed Analysis</h6>
+            <h6 class="m-0 font-weight-bold text-primary">Detailed Station Analysis for Models Not Achieving Goals</h6>
         </div>
         <div class="card-body">
-            <div class="accordion" id="modelsAccordion">
-                {% for model in models_not_achieving_goal %}
-                <div class="accordion-item">
-                    <h2 class="accordion-header" id="heading{{ loop.index }}">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ loop.index }}" aria-expanded="false" aria-controls="collapse{{ loop.index }}">
-                            <strong>{{ model.project }}</strong> ({{ model.technology }} {{ model.position }}) - 
-                            Goal: {{ "%.1f"|format(model.goal) }}%, 
-                            Actual: {{ "%.1f"|format(model.actual_rty) }}%, 
-                            Gap: {{ "%.1f"|format(model.gap) }}%
-                        </button>
-                    </h2>
-                    <div id="collapse{{ loop.index }}" class="accordion-collapse collapse" aria-labelledby="heading{{ loop.index }}" data-bs-parent="#modelsAccordion">
-                        <div class="accordion-body">
-                            <div class="row mb-3">
-                                <div class="col-md-3">
-                                    <div class="card border-left-primary shadow h-100 py-2">
-                                        <div class="card-body">
-                                            <div class="row no-gutters align-items-center">
-                                                <div class="col mr-2">
-                                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Input</div>
-                                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ model.total_input }}</div>
-                                                </div>
-                                                <div class="col-auto">
-                                                    <i class="fas fa-inbox fa-2x text-gray-300"></i>
-                                                </div>
-                                            </div>
-                                        </div>
+            {% for model in models_not_achieving_goal %}
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="text-primary">{{ model.project }}</h5>
+                    <div>
+                        <span class="badge bg-danger">RTY: {{ "%.2f"|format(model.actual_rty) }}%</span>
+                        <span class="badge bg-warning">Goal: {{ "%.2f"|format(model.goal) }}%</span>
+                        <span class="badge bg-info">Gap: {{ "%.2f"|format(model.gap) }}%</span>
+                    </div>
+                </div>
+                
+                {% if model.project in stations_not_meeting_goal and stations_not_meeting_goal[model.project] %}
+                <div class="table-responsive mb-3">
+                    <table class="table table-bordered table-striped">
+                        <thead class="table-primary">
+                            <tr>
+                                <th>Station</th>
+                                <th>RTY</th>
+                                <th>DER</th>
+                                <th>NTF</th>
+                                <th>DER Goal</th>
+                                <th>NTF Goal</th>
+                                <th>DER Gap</th>
+                                <th>NTF Gap</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for station in stations_not_meeting_goal[model.project] %}
+                            <tr>
+                                <td><strong>{{ station.station }}</strong></td>
+                                <td>{{ "%.2f"|format(station.rty) }}%</td>
+                                <td>{{ "%.2f"|format(station.der) }}%</td>
+                                <td>{{ "%.2f"|format(station.ntf) }}%</td>
+                                <td>{{ "%.2f"|format(station.der_goal) }}%</td>
+                                <td>{{ "%.2f"|format(station.ntf_goal) }}%</td>
+                                <td class="{% if station.der_gap > 0 %}text-danger fw-bold{% endif %}">{{ "%.2f"|format(station.der_gap) }}%</td>
+                                <td class="{% if station.ntf_gap > 0 %}text-danger fw-bold{% endif %}">{{ "%.2f"|format(station.ntf_gap) }}%</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Detailed Analysis for Each Station -->
+                <div class="accordion" id="stationAnalysisAccordion{{ loop.index }}">
+                    {% for station in stations_not_meeting_goal[model.project] %}
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="stationHeading{{ loop.index }}{{ loop.index0 }}">
+                            <button class="accordion-button {% if loop.index0 > 0 %}collapsed{% endif %}" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#stationCollapse{{ loop.index }}{{ loop.index0 }}"
+                                    aria-expanded="{% if loop.index0 == 0 %}true{% else %}false{% endif %}"
+                                    aria-controls="stationCollapse{{ loop.index }}{{ loop.index0 }}">
+                                <strong>{{ station.station }} Analysis</strong>
+                                <span class="ms-2">
+                                    {% if station.ntf_goal > 0 %}
+                                    <span class="badge {% if station.ntf <= station.ntf_goal %}bg-success{% else %}bg-danger{% endif %}">
+                                        NTF: {{ "%.2f"|format(station.ntf) }}% / {{ "%.2f"|format(station.ntf_goal) }}%
+                                    </span>
+                                    {% endif %}
+                                    {% if station.der_goal > 0 %}
+                                    <span class="badge {% if station.der <= station.der_goal %}bg-success{% else %}bg-danger{% endif %}">
+                                        DER: {{ "%.2f"|format(station.der) }}% / {{ "%.2f"|format(station.der_goal) }}%
+                                    </span>
+                                    {% endif %}
+                                </span>
+                            </button>
+                        </h2>
+                        <div id="stationCollapse{{ loop.index }}{{ loop.index0 }}"
+                             class="accordion-collapse collapse {% if loop.index0 == 0 %}show{% endif %}"
+                             aria-labelledby="stationHeading{{ loop.index }}{{ loop.index0 }}"
+                             data-bs-parent="#stationAnalysisAccordion{{ loop.index }}">
+                            <div class="accordion-body">
+                                <div class="row mb-3">
+                                    <div class="col-md-3">
+                                        <p><strong>Input Qty:</strong> {{ station.total_input }}</p>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <p><strong>Pass Qty:</strong> {{ station.total_pass }}</p>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <p><strong>Fail Qty:</strong> {{ station.total_fail }}</p>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <p><strong>NDF Qty:</strong> {{ station.total_ntf }}</p>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
-                                    <div class="card border-left-success shadow h-100 py-2">
-                                        <div class="card-body">
-                                            <div class="row no-gutters align-items-center">
-                                                <div class="col mr-2">
-                                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total Pass</div>
-                                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ model.total_pass }}</div>
-                                                </div>
-                                                <div class="col-auto">
-                                                    <i class="fas fa-check fa-2x text-gray-300"></i>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="card border-left-warning shadow h-100 py-2">
-                                        <div class="card-body">
-                                            <div class="row no-gutters align-items-center">
-                                                <div class="col mr-2">
-                                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Total Fail</div>
-                                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ model.total_fail }}</div>
-                                                </div>
-                                                <div class="col-auto">
-                                                    <i class="fas fa-times fa-2x text-gray-300"></i>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="card border-left-info shadow h-100 py-2">
-                                        <div class="card-body">
-                                            <div class="row no-gutters align-items-center">
-                                                <div class="col mr-2">
-                                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Total NDF</div>
-                                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ model.total_ntf }}</div>
-                                                </div>
-                                                <div class="col-auto">
-                                                    <i class="fas fa-question fa-2x text-gray-300"></i>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            {% if model.project in stations_not_meeting_goal and stations_not_meeting_goal[model.project] %}
-                            <h6 class="font-weight-bold text-danger mb-3">Stations Not Meeting Performance Goals</h6>
-                            <div class="table-responsive">
-                                <table class="table table-bordered" width="100%" cellspacing="0">
-                                    <thead>
-                                        <tr>
-                                            <th>Station</th>
-                                            <th>RTY</th>
-                                            <th>NG Rate</th>
-                                            <th>NG Goal</th>
-                                            <th>NG Gap</th>
-                                            <th>NDF Rate</th>
-                                            <th>NDF Goal</th>
-                                            <th>NDF Gap</th>
-                                            <th>Input Qty</th>
-                                            <th>Pass Qty</th>
-                                            <th>Fail Qty</th>
-                                            <th>NDF Qty</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for station in stations_not_meeting_goal[model.project] %}
-                                        <tr>
-                                            <td>{{ station.station }}</td>
-                                            <td>{{ "%.1f"|format(station.rty) }}%</td>
-                                            <td class="{% if station.der > station.der_goal %}text-danger{% endif %}">{{ "%.2f"|format(station.der) }}%</td>
-                                            <td>{{ "%.2f"|format(station.der_goal) }}%</td>
-                                            <td class="{% if station.der > station.der_goal %}text-danger{% endif %}">{{ "%.2f"|format(station.der_gap) }}%</td>
-                                            <td class="{% if station.ntf > station.ntf_goal %}text-danger{% endif %}">{{ "%.2f"|format(station.ntf) }}%</td>
-                                            <td>{{ "%.2f"|format(station.ntf_goal) }}%</td>
-                                            <td class="{% if station.ntf > station.ntf_goal %}text-danger{% endif %}">{{ "%.2f"|format(station.ntf_gap) }}%</td>
-                                            <td>{{ station.total_input }}</td>
-                                            <td>{{ station.total_pass }}</td>
-                                            <td>{{ station.total_fail }}</td>
-                                            <td>{{ station.total_ntf }}</td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                            
-                            <!-- Station Details -->
-                            {% if model.project in station_details and station_details[model.project] %}
-                            <div class="row mt-4">
-                                {% for station in station_details[model.project] %}
-                                <div class="col-md-6 mb-4">
-                                    <div class="card shadow">
-                                        <div class="card-header py-3">
-                                            <h6 class="m-0 font-weight-bold text-primary">{{ station.station }} - Top Issues</h6>
-                                        </div>
-                                        <div class="card-body">
-                                            <!-- NTF Details -->
-                                            {% if station.ntf > station.ntf_goal %}
-                                            <h6 class="font-weight-bold text-warning mb-2">NTF Details</h6>
-                                            {% if station.ntf_details.top_computers %}
-                                            <p class="mb-2"><strong>Top Computers:</strong></p>
-                                            <ul class="mb-3">
-                                                {% for computer, count in station.ntf_details.top_computers.items() %}
-                                                <li>{{ computer }}: {{ count }} occurrences</li>
-                                                {% endfor %}
-                                            </ul>
-                                            {% endif %}
-                                            
-                                            {% if station.ntf_details.top_faults_by_computer %}
-                                            <p class="mb-2"><strong>Top Faults by Computer:</strong></p>
-                                            {% for computer, faults in station.ntf_details.top_faults_by_computer.items() %}
-                                            <p class="mb-1"><strong>{{ computer }}:</strong></p>
-                                            <ol class="mb-3">
-                                                {% for fault in faults %}
-                                                <li>{{ fault[0] }}: {{ fault[1] }} times</li>
-                                                {% endfor %}
-                                            </ol>
+
+                                {% if station.ntf_goal > 0 and station.ntf > station.ntf_goal %}
+                                <h5 class="mt-3 text-danger">NTF Analysis</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-striped">
+                                        <thead class="table-danger">
+                                            <tr>
+                                                <th>Computer Name</th>
+                                                <th>Qty</th>
+                                                <th>Top Faults</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% if station.ntf_details and station.ntf_details.top_computers %}
+                                            {% for comp, count in station.ntf_details.top_computers.items() %}
+                                            <tr>
+                                                <td><strong>{{ comp }}</strong></td>
+                                                <td>{{ count }}</td>
+                                                <td>
+                                                    {% if station.ntf_details.top_faults_by_computer and station.ntf_details.top_faults_by_computer[comp] %}
+                                                    <ol class="mb-0">
+                                                        {% for fault in station.ntf_details.top_faults_by_computer[comp] %}
+                                                        <li>{{ fault[0] }} → {{ fault[1] }}</li>
+                                                        {% endfor %}
+                                                    </ol>
+                                                    {% else %}
+                                                    No fault data available.
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
                                             {% endfor %}
+                                            {% else %}
+                                            <tr>
+                                                <td colspan="3" class="text-center">No NTF data available</td>
+                                            </tr>
                                             {% endif %}
-                                            {% endif %}
-                                            
-                                            <!-- DER Details -->
-                                            {% if station.der > station.der_goal %}
-                                            <h6 class="font-weight-bold text-danger mb-2">DER Details</h6>
-                                            {% if station.der_details.top_symptoms %}
-                                            <p class="mb-2"><strong>Top Symptoms:</strong></p>
-                                            <ul class="mb-3">
-                                                {% for symptom in station.der_details.top_symptoms %}
-                                                <li>{{ symptom.Symptoms }}: {{ symptom.Count }} times</li>
-                                                {% endfor %}
-                                            </ul>
-                                            {% endif %}
-                                            
-                                            {% if station.der_details.top_responsibilities %}
-                                            <p class="mb-2"><strong>Top Responsibilities:</strong></p>
-                                            <ul class="mb-3">
-                                                {% for resp in station.der_details.top_responsibilities %}
-                                                <li>{{ resp.Responsibilities }}: {{ resp.Count }} times</li>
-                                                {% endfor %}
-                                            </ul>
-                                            {% endif %}
-                                            {% endif %}
-                                        </div>
-                                    </div>
+                                        </tbody>
+                                    </table>
                                 </div>
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                            {% else %}
-                            <div class="alert alert-success" role="alert">
-                                <div class="d-flex align-items-center">
-                                    <div class="me-3">
-                                        <i class="fas fa-check-circle fa-2x"></i>
-                                    </div>
-                                    <div>
-                                        <h5 class="alert-heading">All Stations Meeting Goals</h5>
-                                        <p class="mb-0">All stations for this model are meeting their NTF and DER goals.</p>
-                                    </div>
+                                {% endif %}
+
+                                {% if station.der_goal > 0 and station.der > station.der_goal %}
+                                <h5 class="mt-3 text-danger">DER Analysis</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-striped">
+                                        <thead class="table-danger">
+                                            <tr>
+                                                <th>Symptom</th>
+                                                <th>Qty</th>
+                                                <th>Responsibility</th>
+                                                <th>Qty</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% if station.der_details and station.der_details.top_symptoms and station.der_details.top_responsibilities %}
+                                            {% for i in range(3) %}
+                                            <tr>
+                                                <td>
+                                                    {% if i < station.der_details.top_symptoms|length %}
+                                                        {{ station.der_details.top_symptoms[i].Symptoms }}
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    {% if i < station.der_details.top_symptoms|length %}
+                                                        {{ station.der_details.top_symptoms[i].Count }}
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    {% if i < station.der_details.top_responsibilities|length %}
+                                                        {{ station.der_details.top_responsibilities[i].Responsibility }}
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    {% if i < station.der_details.top_responsibilities|length %}
+                                                        {{ station.der_details.top_responsibilities[i].Count }}
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                            {% else %}
+                                            <tr>
+                                                <td colspan="4" class="text-center">No DER data available</td>
+                                            </tr>
+                                            {% endif %}
+                                        </tbody>
+                                    </table>
                                 </div>
+                                {% endif %}
                             </div>
-                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i class="fas fa-info-circle fa-2x"></i>
+                        </div>
+                        <div>
+                            <h5 class="alert-heading">All Stations Meeting Goals</h5>
+                            <p class="mb-0">All stations are meeting their NTF and DER goals for this model.</p>
                         </div>
                     </div>
                 </div>
-                {% endfor %}
+                {% endif %}
             </div>
+            {% endfor %}
         </div>
     </div>
     {% endif %}
+
+    <!-- Recommendations -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Recommendations</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-12">
+                    <h5 class="font-weight-bold text-primary mb-3">Priority Actions</h5>
+                    <ol>
+                        {% if models_not_achieving_goal %}
+                        {% set top_model = models_not_achieving_goal[0] %}
+                        <li>
+                            <strong>Focus on {{ top_model.project }} ({{ top_model.technology }} {{ top_model.position }})</strong> -
+                            This model has the largest RTY gap of {{ "%.1f"|format(top_model.gap) }}%.
+                            Addressing this could improve {{ "%.0f"|format((top_model.gap / 100) * top_model.total_input) }} units.
+                        </li>
+                        {% endif %}
+
+                        {% if summary_data.models_not_achieving_goal > 0 %}
+                        <li>
+                            <strong>Station-Level Improvements</strong> -
+                            Focus on stations with the largest DER and NTF gaps.
+                            Implement targeted process improvements and quality checks.
+                        </li>
+                        {% endif %}
+
+                        <li>
+                            <strong>Process Optimization</strong> -
+                            Implement real-time monitoring systems to identify production issues as they occur,
+                            reducing the average gap across all models.
+                        </li>
+
+                        <li>
+                            <strong>Quality Control Enhancement</strong> -
+                            Focus on reducing NG (No Good) rates which directly impact RTY.
+                            Target a {{ "%.1f"|format(summary_data.models_not_achieving_goal * 0.5) }}% improvement in the next quarter.
+                        </li>
+                    </ol>
+
+                    <h5 class="font-weight-bold text-primary mt-4 mb-3">Long-term Strategic Initiatives</h5>
+                    <ul>
+                        <li>
+                            <strong>Digital Transformation</strong> -
+                            Implement Industry 4.0 technologies for predictive quality control and real-time process adjustments.
+                        </li>
+                        <li>
+                            <strong>Root Cause Analysis</strong> -
+                            Establish a systematic approach to identify and eliminate root causes of quality issues.
+                        </li>
+                        <li>
+                            <strong>Continuous Improvement Culture</strong> -
+                            Foster a culture of continuous improvement with regular reviews and employee engagement.
+                        </li>
+                        <li>
+                            <strong>Supply Chain Integration</strong> -
+                            Work closely with suppliers to ensure component quality meets requirements.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Modal -->
+<div class="modal fade" id="loadingModal" tabindex="-1" aria-labelledby="loadingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-body text-center">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p>Refreshing data, please wait...</p>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         // Initialize DataTable
         const table = $('#modelsSummaryTable').DataTable({
             responsive: true,
             pageLength: 25,
-            lengthMenu: [ [10, 25, 50, 100], [10, 25, 50, 100] ],
+            lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
             order: [[6, 'desc']], // Sort by Gap column descending
             dom: 'Bfrtip',
             buttons: [
@@ -472,106 +532,28 @@
                 { targets: '_all', className: 'text-center' }
             ]
         });
-        
-        // Technology Chart
-        const techCtx = document.getElementById('techChart').getContext('2d');
-        const techChart = new Chart(techCtx, {
-            type: 'pie',
-            data: {
-                labels: [
-                    {% for tech, avg_rty in summary_data.tech_avg_rty.items() %}
-                    "{{ tech }}",
-                    {% endfor %}
-                ],
-                datasets: [{
-                    data: [
-                        {% for tech, avg_rty in summary_data.tech_avg_rty.items() %}
-                        {{ avg_rty }},
-                        {% endfor %}
-                    ],
-                    backgroundColor: [
-                        '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b'
-                    ],
-                    hoverBackgroundColor: [
-                        '#2e59d9', '#17a673', '#2c9faf', '#dda20a', '#be2612'
-                    ],
-                    hoverBorderColor: "rgba(234, 236, 244, 1)",
-                }],
-            },
-            options: {
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const label = context.label || '';
-                                const value = context.raw || 0;
-                                return `${label}: ${value.toFixed(2)}%`;
-                            }
-                        }
-                    }
-                }
-            }
-        });
-        
-        // Position Chart
-        const positionCtx = document.getElementById('positionChart').getContext('2d');
-        const positionChart = new Chart(positionCtx, {
-            type: 'pie',
-            data: {
-                labels: [
-                    {% for position, avg_rty in summary_data.position_avg_rty.items() %}
-                    "{{ position }}",
-                    {% endfor %}
-                ],
-                datasets: [{
-                    data: [
-                        {% for position, avg_rty in summary_data.position_avg_rty.items() %}
-                        {{ avg_rty }},
-                        {% endfor %}
-                    ],
-                    backgroundColor: [
-                        '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b'
-                    ],
-                    hoverBackgroundColor: [
-                        '#2e59d9', '#17a673', '#2c9faf', '#dda20a', '#be2612'
-                    ],
-                    hoverBorderColor: "rgba(234, 236, 244, 1)",
-                }],
-            },
-            options: {
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const label = context.label || '';
-                                const value = context.raw || 0;
-                                return `${label}: ${value.toFixed(2)}%`;
-                            }
-                        }
-                    }
-                }
-            }
-        });
-        
+
         // Export buttons
-        document.getElementById('export-excel').addEventListener('click', function() {
+        document.getElementById('export-excel').addEventListener('click', function () {
             table.button('.buttons-excel').trigger();
         });
-        
-        document.getElementById('export-pdf').addEventListener('click', function() {
+
+        document.getElementById('export-pdf').addEventListener('click', function () {
             table.button('.buttons-pdf').trigger();
         });
-        
-        document.getElementById('export-summary').addEventListener('click', function() {
+
+        document.getElementById('export-summary').addEventListener('click', function () {
             table.button('.buttons-excel').trigger();
+        });
+
+        // Refresh data
+        document.getElementById('refresh-data').addEventListener('click', function () {
+            const loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
+            loadingModal.show();
+            
+            setTimeout(function() {
+                window.location.reload();
+            }, 1500);
         });
     });
 </script>
