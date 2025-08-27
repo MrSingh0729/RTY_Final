@@ -60,6 +60,14 @@
                 class="menu-item {% if request.endpoint == 'dashboard.model_specific' %}active{% endif %}">
                 <i class="fas fa-cogs me-2"></i> Model Specific
             </a>
+            <a href="{{ url_for('dashboard.rty_analysis_report') }}"
+                class="menu-item {% if request.endpoint == 'dashboard.model_specific' %}active{% endif %}">
+                <i class="fas fa-cogs me-2"></i> RTY Analysis
+            </a>
+            <a href="{{ url_for('dashboard.models_rty_summary') }}"
+                class="menu-item {% if request.endpoint == 'dashboard.model_specific' %}active{% endif %}">
+                <i class="fas fa-cogs me-2"></i> MModels RTY Summary
+            </a>
         </div>
         <div class="sidebar-footer">
             <div class="user-info">
@@ -87,6 +95,7 @@
                 <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt fa-sm fa-fw me-2 text-gray-400"></i>Logout</a></li>
             </ul>
         </li>
+        
     {% else %}
         <li class="nav-item">
             <a class="nav-link" href="{{ url_for('auth.login') }}">

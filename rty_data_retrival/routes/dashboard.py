@@ -1143,3 +1143,595 @@ def export_pdf_model():
     except Exception as e:
         print(f"Error exporting PDF: {e}")
         return f"Error exporting data: {str(e)}"
+    
+    
+    
+@dashboard_bp.route('/rty-analysis-report')
+@login_required
+def rty_analysis_report():
+    current_time = datetime.now().strftime('%H:%M')
+    try:
+        # Get token
+        token = get_token()
+        
+        # Get project list
+        projects = get_project_list(token)
+        
+        # Get today's data from 08:00AM to now
+        now = datetime.now()
+        start = now.replace(hour=8, minute=0, second=0, microsecond=0)
+        
+        # Get FPY data
+        fpy_data_raw = get_fpy(token, projects, start, now)
+        
+        # Get model descriptions from database to filter out 2G models and get goals
+        db_models = {model.model_name: model for model in ModelDescription.query.all()}
+        
+        # Process data and filter out 2G models
+        processed_data = []
+        models_not_meeting_goal = []
+        
+        # Group data by project/model
+        project_data = {}
+        
+        for record in fpy_data_raw:
+            project = record.get('project', '')
+            model_info = db_models.get(project)
+            
+            # Skip 2G models
+            if model_info and model_info.technology == '2G':
+                continue
+                
+            # Skip if no model info found
+            if not model_info:
+                continue
+                
+            # Extract values
+            input_qty = int(record.get('inPut', 0))
+            pass_qty = int(record.get('pass', 0))
+            fail_qty = int(record.get('fail', 0))
+            not_fail_qty = int(record.get('notFail', 0))
+            der_val = float(str(record.get('der', '0')).replace('%', '')) if record.get('der') else 0
+            ntf_val = float(str(record.get('ntf', '0')).replace('%', '')) if record.get('ntf') else 0
+            rty_val = float(str(record.get('rty', '0')).replace('%', '')) if record.get('rty') else 0
+            
+            # Get goal from model info
+            goal_str = model_info.goal.replace('%', '') if model_info.goal and model_info.goal != 'NA' else '0'
+            goal_val = float(goal_str) if goal_str else 0
+            
+            # Create processed record
+            processed_record = {
+                "project": project,
+                "station": record.get('station', ''),
+                "inPut": input_qty,
+                "pass": pass_qty,
+                "fail": fail_qty,
+                "notFail": not_fail_qty,
+                "der": der_val,
+                "ntf": ntf_val,
+                "rty": rty_val,
+                "goal": goal_val,
+                "technology": model_info.technology,
+                "position": model_info.position,
+                "brand": model_info.brand
+            }
+            
+            processed_data.append(processed_record)
+            
+            # Group by project for later analysis
+            if project not in project_data:
+                project_data[project] = []
+            project_data[project].append(processed_record)
+        
+        # Calculate overall RTY for each project and check against goal
+        for project, records in project_data.items():
+            # Calculate total input and pass for the project
+            total_input = sum(record['inPut'] for record in records)
+            total_pass = sum(record['pass'] for record in records)
+            
+            # Calculate overall RTY
+            overall_rty = (total_pass / total_input * 100) if total_input > 0 else 0
+            
+            # Get model info
+            model_info = db_models.get(project)
+            goal_val = model_info.goal.replace('%', '') if model_info.goal and model_info.goal != 'NA' else '0'
+            goal_val = float(goal_val) if goal_val else 0
+            
+            # Check if goal is not achieved
+            if overall_rty < goal_val and goal_val > 0:
+                models_not_meeting_goal.append({
+                    "project": project,
+                    "technology": model_info.technology,
+                    "position": model_info.position,
+                    "brand": model_info.brand,
+                    "goal": goal_val,
+                    "actual_rty": overall_rty,
+                    "gap": goal_val - overall_rty,
+                    "total_input": total_input,
+                    "total_pass": total_pass,
+                    "total_fail": sum(record['fail'] for record in records),
+                    "total_ntf": sum(record['notFail'] for record in records),
+                    "stations": records
+                })
+        
+        # Sort by gap (largest gap first)
+        models_not_meeting_goal.sort(key=lambda x: x['gap'], reverse=True)
+        
+        # Calculate summary statistics
+        total_models = len(project_data)
+        models_meeting_goal = total_models - len(models_not_meeting_goal)
+        compliance_rate = (models_meeting_goal / total_models * 100) if total_models > 0 else 0
+        
+        # Calculate average gap
+        avg_gap = sum(model['gap'] for model in models_not_meeting_goal) / len(models_not_meeting_goal) if models_not_meeting_goal else 0
+        
+        # Calculate total input for all models
+        total_input_all = sum(model['total_input'] for model in models_not_meeting_goal)
+        
+        # Calculate potential improvement if all models met goal
+        potential_improvement = 0
+        for model in models_not_meeting_goal:
+            if model['total_input'] > 0:
+                potential_units = model['total_input'] * (model['gap'] / 100)
+                potential_improvement += potential_units
+        
+        # Prepare summary data
+        summary_data = {
+            "total_models": total_models,
+            "models_meeting_goal": models_meeting_goal,
+            "models_not_meeting_goal": len(models_not_meeting_goal),
+            "compliance_rate": compliance_rate,
+            "avg_gap": avg_gap,
+            "total_input": total_input_all,
+            "potential_improvement": potential_improvement
+        }
+        
+        # Group by technology for analysis
+        tech_analysis = {}
+        for model in models_not_meeting_goal:
+            tech = model['technology']
+            if tech not in tech_analysis:
+                tech_analysis[tech] = {
+                    "count": 0,
+                    "total_gap": 0,
+                    "total_input": 0,
+                    "models": []
+                }
+            
+            tech_analysis[tech]["count"] += 1
+            tech_analysis[tech]["total_gap"] += model['gap']
+            tech_analysis[tech]["total_input"] += model['total_input']
+            tech_analysis[tech]["models"].append(model)
+        
+        # Group by position for analysis
+        position_analysis = {}
+        for model in models_not_meeting_goal:
+            position = model['position']
+            if position not in position_analysis:
+                position_analysis[position] = {
+                    "count": 0,
+                    "total_gap": 0,
+                    "total_input": 0,
+                    "models": []
+                }
+            
+            position_analysis[position]["count"] += 1
+            position_analysis[position]["total_gap"] += model['gap']
+            position_analysis[position]["total_input"] += model['total_input']
+            position_analysis[position]["models"].append(model)
+        
+        # Group by brand for analysis
+        brand_analysis = {}
+        for model in models_not_meeting_goal:
+            brand = model['brand']
+            if brand not in brand_analysis:
+                brand_analysis[brand] = {
+                    "count": 0,
+                    "total_gap": 0,
+                    "total_input": 0,
+                    "models": []
+                }
+            
+            brand_analysis[brand]["count"] += 1
+            brand_analysis[brand]["total_gap"] += model['gap']
+            brand_analysis[brand]["total_input"] += model['total_input']
+            brand_analysis[brand]["models"].append(model)
+        
+        return render_template('dashboard/rty_analysis_report.html', 
+                               models_not_meeting_goal=models_not_meeting_goal,
+                               summary_data=summary_data,
+                               tech_analysis=tech_analysis,
+                               position_analysis=position_analysis,
+                               brand_analysis=brand_analysis,
+                               current_time=current_time)
+    except Exception as e:
+        current_time = datetime.now().strftime('%H:%M')
+        return render_template('errors/500.html', error=str(e), current_time=current_time)
+    
+    
+    
+@dashboard_bp.route('/models-rty-summary')
+@login_required
+def models_rty_summary():
+    current_time = datetime.now().strftime('%H:%M')
+    try:
+        # Import station goals from config
+        from config import Config
+        
+        # Get token
+        token = get_token()
+        
+        # Get project list
+        projects = get_project_list(token)
+        
+        # Get today's data from 08:00AM to now
+        now = datetime.now()
+        start = now.replace(hour=8, minute=0, second=0, microsecond=0)
+        
+        # Get FPY data
+        fpy_data_raw = get_fpy(token, projects, start, now)
+        
+        # Get model descriptions from database to filter out 2G models and get goals
+        db_models = {model.model_name: model for model in ModelDescription.query.all()}
+        
+        # Process data and filter out 2G models
+        all_models_data = []
+        models_achieving_goal = []
+        models_not_achieving_goal = []
+        
+        # Group data by project/model
+        project_data = {}
+        station_data = {}  # For station analysis
+        
+        # Initialize counters for overall RTY calculation
+        total_pcurr_input_all = 0
+        total_ng_all = 0
+        total_ndf_all = 0
+        
+        # Initialize data structures for technology and position analysis
+        tech_rty_data = {}  # To store RTY values for each technology
+        position_rty_data = {}  # To store RTY values for each position category
+        
+        for record in fpy_data_raw:
+            project = record.get('project', '')
+            station = record.get('station', '')
+            model_info = db_models.get(project)
+            
+            # Skip 2G models
+            if model_info and model_info.technology == '2G':
+                continue
+                
+            # Skip if no model info found
+            if not model_info:
+                continue
+                
+            # Extract values
+            input_qty = int(record.get('inPut', 0))
+            pass_qty = int(record.get('pass', 0))
+            fail_qty = int(record.get('fail', 0))
+            not_fail_qty = int(record.get('notFail', 0))
+            der_val = float(str(record.get('der', '0')).replace('%', '')) if record.get('der') else 0
+            ntf_val = float(str(record.get('ntf', '0')).replace('%', '')) if record.get('ntf') else 0
+            rty_val = float(str(record.get('rty', '0')).replace('%', '')) if record.get('rty') else 0
+            
+            # Get goal from model info
+            goal_str = model_info.goal.replace('%', '') if model_info.goal and model_info.goal != 'NA' else '0'
+            goal_val = float(goal_str) if goal_str else 0
+            
+            # Create processed record
+            processed_record = {
+                "project": project,
+                "station": station,
+                "inPut": input_qty,
+                "pass": pass_qty,
+                "fail": fail_qty,
+                "notFail": not_fail_qty,
+                "der": der_val,
+                "ntf": ntf_val,
+                "rty": rty_val,
+                "goal": goal_val,
+                "technology": model_info.technology,
+                "position": model_info.position,
+                "brand": model_info.brand
+            }
+            
+            # Add to all models data
+            all_models_data.append(processed_record)
+            
+            # Group by project for later analysis
+            if project not in project_data:
+                project_data[project] = []
+            project_data[project].append(processed_record)
+            
+            # Group by station for station analysis
+            if station not in station_data:
+                station_data[station] = []
+            station_data[station].append(processed_record)
+            
+            # Accumulate for overall RTY calculation
+            total_ng_all += fail_qty
+            total_ndf_all += not_fail_qty
+            if station == 'PCURR':
+                total_pcurr_input_all += input_qty
+            
+            # Collect RTY data for technology and position analysis
+            tech = model_info.technology
+            if tech not in tech_rty_data:
+                tech_rty_data[tech] = []
+            tech_rty_data[tech].append(rty_val)
+            
+            position = model_info.position
+            if position in ['LOW', 'MID']:
+                position_key = 'LOW/MID'
+            elif position in ['HIGH', 'FLAGSHIP', 'FOLD']:
+                position_key = 'HIGH/FLAGSHIP/FOLD'
+            else:
+                position_key = 'OTHER'
+                
+            if position_key not in position_rty_data:
+                position_rty_data[position_key] = []
+            position_rty_data[position_key].append(rty_val)
+        
+        # Calculate overall RTY using the formula
+        # RTY (%) = (1 - (Total NG Qty + Total NDF Qty) / Total PCURR Input) × 100
+        overall_rty = (1 - (total_ng_all + total_ndf_all) / total_pcurr_input_all) * 100 if total_pcurr_input_all > 0 else 0
+        
+        # Calculate average RTY by technology and position
+        tech_avg_rty = {}
+        for tech, rty_values in tech_rty_data.items():
+            if rty_values:
+                tech_avg_rty[tech] = sum(rty_values) / len(rty_values)
+            else:
+                tech_avg_rty[tech] = 0
+        
+        position_avg_rty = {}
+        for position, rty_values in position_rty_data.items():
+            if rty_values:
+                position_avg_rty[position] = sum(rty_values) / len(rty_values)
+            else:
+                position_avg_rty[position] = 0
+        
+        # Calculate RTY for each project and check against goal
+        for project, records in project_data.items():
+            # Calculate total input and pass for the project
+            total_input = sum(record['inPut'] for record in records)
+            total_pass = sum(record['pass'] for record in records)
+            
+            # Calculate overall RTY for the project (from API)
+            # We'll use the RTY from the first record as the overall RTY for the project
+            project_rty = records[0]['rty'] if records else 0
+            
+            # Get model info
+            model_info = db_models.get(project)
+            goal_val = model_info.goal.replace('%', '') if model_info.goal and model_info.goal != 'NA' else '0'
+            goal_val = float(goal_val) if goal_val else 0
+            
+            # Check if goal is achieved
+            if project_rty >= goal_val and goal_val > 0:
+                models_achieving_goal.append({
+                    "project": project,
+                    "technology": model_info.technology,
+                    "position": model_info.position,
+                    "brand": model_info.brand,
+                    "goal": goal_val,
+                    "actual_rty": project_rty,
+                    "gap": project_rty - goal_val,
+                    "total_input": total_input,
+                    "total_pass": total_pass,
+                    "total_fail": sum(record['fail'] for record in records),
+                    "total_ntf": sum(record['notFail'] for record in records),
+                    "stations": records
+                })
+            else:
+                models_not_achieving_goal.append({
+                    "project": project,
+                    "technology": model_info.technology,
+                    "position": model_info.position,
+                    "brand": model_info.brand,
+                    "goal": goal_val,
+                    "actual_rty": project_rty,
+                    "gap": goal_val - project_rty if goal_val > 0 else 0,
+                    "total_input": total_input,
+                    "total_pass": total_pass,
+                    "total_fail": sum(record['fail'] for record in records),
+                    "total_ntf": sum(record['notFail'] for record in records),
+                    "stations": records
+                })
+        
+        # Sort models not achieving goal by gap (largest gap first)
+        models_not_achieving_goal.sort(key=lambda x: x['gap'], reverse=True)
+        
+        # Calculate station performance for models not achieving goal
+        stations_not_meeting_goal = {}
+        station_details = {}  # For storing top 3 issues
+        
+        for model in models_not_achieving_goal:
+            project = model['project']
+            stations_not_meeting_goal[project] = []
+            station_details[project] = []
+            
+            # Get stations for this model
+            for station, records in station_data.items():
+                # Filter records for this project
+                project_records = [r for r in records if r['project'] == project]
+                
+                if project_records:
+                    total_input = sum(record['inPut'] for record in project_records)
+                    total_pass = sum(record['pass'] for record in project_records)
+                    total_fail = sum(record['fail'] for record in project_records)
+                    total_ntf = sum(record['notFail'] for record in project_records)
+                    
+                    # Calculate station RTY
+                    station_rty = (total_pass / total_input * 100) if total_input > 0 else 0
+                    
+                    # Calculate station DER and NTF
+                    station_der = (total_fail / total_input * 100) if total_input > 0 else 0
+                    station_ntf = (total_ntf / total_input * 100) if total_input > 0 else 0
+                    
+                    # Check if station meets goals from config
+                    station_ntf_goal = Config.NTF_GOALS.get(station, float('inf'))
+                    station_der_goal = Config.DER_GOALS.get(station, float('inf'))
+                    
+                    # Consider a station not meeting goal if it exceeds either NTF or DER goal
+                    if station_ntf > station_ntf_goal or station_der > station_der_goal:
+                        station_info = {
+                            "station": station,
+                            "rty": station_rty,
+                            "der": station_der,
+                            "ntf": station_ntf,
+                            "der_goal": station_der_goal,
+                            "ntf_goal": station_ntf_goal,
+                            "der_gap": station_der - station_der_goal,
+                            "ntf_gap": station_ntf - station_ntf_goal,
+                            "total_input": total_input,
+                            "total_pass": total_pass,
+                            "total_fail": total_fail,
+                            "total_ntf": total_ntf
+                        }
+                        
+                        stations_not_meeting_goal[project].append(station_info)
+                        
+                        # Get NTF details if NTF goal is not met
+                        if station_ntf > station_ntf_goal:
+                            try:
+                                # Get detailed NTF data for this station
+                                ntf_data = get_station_ntf_details(token, project, station)
+                                ntf_df = pd.DataFrame(ntf_data)
+                                
+                                if not ntf_df.empty:
+                                    # Rename columns to match expected format
+                                    ntf_df = ntf_df.rename(columns={
+                                        "substation": "Computer Name",
+                                        "sn": "SN",
+                                        "symptomEnName": "Fault Description"
+                                    })
+                                    
+                                    # Get top computers
+                                    top_computers = ntf_df["Computer Name"].value_counts().head(3).to_dict()
+                                    
+                                    # Get top faults by computer
+                                    top_faults_by_computer = {}
+                                    for comp in top_computers:
+                                        comp_faults = ntf_df[ntf_df["Computer Name"] == comp]
+                                        faults = comp_faults["Fault Description"].value_counts().head(3).reset_index().values.tolist()
+                                        top_faults_by_computer[comp] = faults
+                                    
+                                    station_info["ntf_details"] = {
+                                        "top_computers": top_computers,
+                                        "top_faults_by_computer": top_faults_by_computer
+                                    }
+                                else:
+                                    station_info["ntf_details"] = {
+                                        "top_computers": {},
+                                        "top_faults_by_computer": {}
+                                    }
+                            except Exception as e:
+                                print(f"Error getting NTF details for {station}: {e}")
+                                station_info["ntf_details"] = {
+                                    "top_computers": {},
+                                    "top_faults_by_computer": {}
+                                }
+                        
+                        # Get DER details if DER goal is not met
+                        if station_der > station_der_goal:
+                            try:
+                                # Get detailed DER data for this station
+                                der_data = get_station_der_details(token, project, station)
+                                der_df = pd.DataFrame(der_data)
+                                
+                                if not der_df.empty:
+                                    # Rename columns to match expected format
+                                    der_df = der_df.rename(columns={
+                                        "sn": "SN",
+                                        "responsibilityEnName": "Responsibility",
+                                        "symptomEnName": "Symptoms"
+                                    })
+                                    
+                                    # Get top symptoms and responsibilities
+                                    top_symptoms = get_top_n_counts(der_df, "Symptoms", 3)
+                                    top_responsibilities = get_top_n_counts(der_df, "Responsibility", 3)
+                                    
+                                    station_info["der_details"] = {
+                                        "top_symptoms": top_symptoms.to_dict(orient="records"),
+                                        "top_responsibilities": top_responsibilities.to_dict(orient="records")
+                                    }
+                                else:
+                                    station_info["der_details"] = {
+                                        "top_symptoms": [],
+                                        "top_responsibilities": []
+                                    }
+                            except Exception as e:
+                                print(f"Error getting DER details for {station}: {e}")
+                                station_info["der_details"] = {
+                                    "top_symptoms": [],
+                                    "top_responsibilities": []
+                                }
+            
+            # Sort stations not meeting goal by DER gap (largest gap first)
+            stations_not_meeting_goal[project].sort(key=lambda x: x['der_gap'], reverse=True)
+        
+        # Calculate summary statistics
+        total_models = len(project_data)
+        models_achieving_count = len(models_achieving_goal)
+        models_not_achieving_count = len(models_not_achieving_goal)
+        achievement_rate = (models_achieving_count / total_models * 100) if total_models > 0 else 0
+        
+        # Prepare summary data
+        summary_data = {
+            "total_models": total_models,
+            "models_achieving_goal": models_achieving_count,
+            "models_not_achieving_goal": models_not_achieving_count,
+            "achievement_rate": achievement_rate,
+            "overall_rty": overall_rty,
+            "total_pcurr_input": total_pcurr_input_all,
+            "total_ng_all": total_ng_all,
+            "total_ndf_all": total_ndf_all,
+            "ntf_goals": Config.NTF_GOALS,
+            "der_goals": Config.DER_GOALS,
+            "tech_avg_rty": tech_avg_rty,
+            "position_avg_rty": position_avg_rty
+        }
+        
+        # Prepare models summary table data
+        models_summary = []
+        
+        # Add models achieving goal
+        for model in models_achieving_goal:
+            models_summary.append({
+                "project": model["project"],
+                "technology": model["technology"],
+                "position": model["position"],
+                "brand": model["brand"],
+                "goal": model["goal"],
+                "actual_rty": model["actual_rty"],
+                "status": "Achieved",
+                "gap": model["gap"]
+            })
+        
+        # Add models not achieving goal
+        for model in models_not_achieving_goal:
+            models_summary.append({
+                "project": model["project"],
+                "technology": model["technology"],
+                "position": model["position"],
+                "brand": model["brand"],
+                "goal": model["goal"],
+                "actual_rty": model["actual_rty"],
+                "status": "Not Achieved",
+                "gap": -model["gap"]  # Negative gap for not achieved
+            })
+        
+        # Sort by project name
+        models_summary.sort(key=lambda x: x["project"])
+        
+        return render_template('dashboard/models_rty_summary.html', 
+                               models_summary=models_summary,
+                               models_achieving_goal=models_achieving_goal,
+                               models_not_achieving_goal=models_not_achieving_goal,
+                               stations_not_meeting_goal=stations_not_meeting_goal,
+                               station_details=station_details,
+                               summary_data=summary_data,
+                               current_time=current_time)
+    except Exception as e:
+        current_time = datetime.now().strftime('%H:%M')
+        return render_template('errors/500.html', error=str(e), current_time=current_time)
