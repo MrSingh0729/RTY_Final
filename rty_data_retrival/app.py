@@ -1,15 +1,28 @@
+import os
+import sys
+import json
+import threading
+import atexit
+import webbrowser
+import time
+import signal
+import platform
+from datetime import datetime, timedelta
+
+# Explicitly import Flask and Flask-Login
+import flask
 from flask import Flask, render_template, request, send_file, jsonify, Blueprint, redirect, url_for
+import flask_login
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+
+# Import other third-party libraries
 import pandas as pd
 import io
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill
-from datetime import datetime, timedelta
-import os
-import json
-import threading
-import atexit  # Added this import
 from apscheduler.schedulers.background import BackgroundScheduler
+
+# Import local modules
 from utils.api import *
 from utils.helpers import *
 from config import Config
@@ -153,6 +166,26 @@ scheduler.add_job(
 # Start the scheduler
 scheduler.start()
 
+# Function to open browser
+def open_browser():
+    """Open browser after a short delay"""
+    time.sleep(1.5)  # Wait for server to start
+    url = "http://127.0.0.1:5000"
+    
+    # Try to open browser based on OS
+    try:
+        if platform.system() == "Windows":
+            webbrowser.open(url)
+        elif platform.system() == "Darwin":  # macOS
+            webbrowser.open(url)
+        else:  # Linux
+            try:
+                webbrowser.get('firefox').open(url)
+            except:
+                webbrowser.open(url)
+    except Exception as e:
+        print(f"Could not open browser automatically: {e}")
+
 # Error Handlers
 @app.errorhandler(404)
 def page_not_found(e):
@@ -167,8 +200,45 @@ def internal_server_error(e):
 # Make sure to shut down the scheduler when exiting the app
 atexit.register(lambda: scheduler.shutdown())
 
-
-
+# Shutdown route with multiple strategies
+@app.route('/shutdown', methods=['POST'])
+def shutdown():
+    """Shutdown the Flask server using multiple strategies"""
+    try:
+        # Strategy 1: Try Werkzeug server shutdown
+        func = request.environ.get('werkzeug.server.shutdown')
+        if func is not None:
+            func()
+            return jsonify({"success": True, "message": "Server shutting down..."})
+        
+        # Strategy 2: Try to kill the process
+        try:
+            # Get current process ID
+            pid = os.getpid()
+            
+            # Try to terminate the process
+            if platform.system() == "Windows":
+                os.kill(pid, signal.CTRL_C_EVENT)
+            else:
+                os.kill(pid, signal.SIGINT)
+            
+            return jsonify({"success": True, "message": "Server shutting down..."})
+        except:
+            pass
+        
+        # Strategy 3: Use sys.exit for PyInstaller
+        # This will be handled in the JavaScript after receiving the response
+        return jsonify({
+            "success": True, 
+            "message": "Server will shutdown. Please close this window manually.",
+            "manual_close": True
+        })
+        
+    except Exception as e:
+        return jsonify({
+            "success": False, 
+            "message": f"Error shutting down server: {str(e)}"
+        }), 500
 
 @app.route('/')
 def root():
@@ -176,4 +246,6 @@ def root():
 
 # Main entry point
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    # Start browser opening in a separate thread
+    threading.Thread(target=open_browser).start()
+    app.run(host="0.0.0.0", port=5000, debug=False)

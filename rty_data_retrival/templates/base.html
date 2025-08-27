@@ -1,188 +1,433 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FPY Dashboard - Modern Analytics Platform</title>
-    <meta name="description" content="Advanced First Pass Yield Dashboard for Manufacturing Analytics">
-
-    <!-- Favicon -->
-    <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
-
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <!-- DataTables CSS -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
-
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    {% block head %}{% endblock %}
-</head>
-
-<body>
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <h3><i class="fas fa-industry me-2"></i>FPY Dashboard</h3>
-        </div>
-        <div class="sidebar-menu">
-            <a href="{{ url_for('dashboard.home') }}"
-                class="menu-item {% if request.endpoint == 'dashboard.home' %}active{% endif %}">
-                <i class="fas fa-home me-2"></i> Home
-            </a>
-            <a href="{{ url_for('dashboard.custom_dashboard') }}"
-                class="menu-item {% if request.endpoint == 'dashboard.custom_dashboard' %}active{% endif %}">
-                <i class="fas fa-chart-bar me-2"></i> Dashboard
-            </a>
-            <a href="{{ url_for('dashboard.auto_data') }}"
-                class="menu-item {% if request.endpoint == 'dashboard.auto_data' %}active{% endif %}">
-                <i class="fas fa-bolt me-2"></i> Live RTY Data
-            </a>
-            <a href="{{ url_for('dashboard.project_specific') }}"
-                class="menu-item {% if request.endpoint == 'dashboard.project_specific' %}active{% endif %}">
-                <i class="fas fa-project-diagram me-2"></i> Single Model Live ANA
-            </a>
-            <a href="{{ url_for('dashboard.model_specific') }}"
-                class="menu-item {% if request.endpoint == 'dashboard.model_specific' %}active{% endif %}">
-                <i class="fas fa-cogs me-2"></i> Model Wise ANA
-            </a>
-            <a href="{{ url_for('dashboard.models_rty_summary') }}"
-            class="menu-item {% if request.endpoint == 'dashboard.dashboard.models_rty_summary' %}active{% endif %}">
-            <i class="fas fa-cogs me-2"></i> All Models Live ANA
-        </a>
-        <a href="{{ url_for('dashboard.model_analysis_date_range') }}"
-            class="menu-item {% if request.endpoint == 'dashboard.model_analysis_date_range' %}active{% endif %}">
-            <i class="fas fa-cogs me-2"></i> Model ANA By Range
-        </a>
-        </div>
-        <div class="sidebar-footer">
-            <div class="user-info">
-                <div class="user-avatar">
-                    <i class="fas fa-user-circle"></i>
-                </div>
-                <div class="user-details">
-                    <div class="user-name">{{ current_user.id }}</div>
-                    <div class="user-role">Analyst</div>
-                </div>
-            </div>
-            <a href="{{ url_for('auth.logout') }}" class="logout-btn">
-                <i class="fas fa-sign-out-alt me-2"></i> Logout
-            </a>
-        </div>
-    </div>
-    <!-- Add this to your navigation bar in base.html -->
-<ul class="navbar-nav ms-auto">
-    {% if current_user.is_authenticated %}
-        <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="fas fa-user fa-fw"></i> {{ current_user.id }}
-            </a>
-            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt fa-sm fa-fw me-2 text-gray-400"></i>Logout</a></li>
-            </ul>
-        </li>
-        
-    {% else %}
-        <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('auth.login') }}">
-                <i class="fas fa-sign-in-alt"></i> Login
-            </a>
-        </li>
-    {% endif %}
-</ul>
-
-    <!-- Main Content -->
-    <div class="main-content">
-        <!-- Top Navigation -->
-        <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
-            <div class="container-fluid">
-                <button class="btn btn-link d-md-none" id="sidebar-toggle">
-                    <i class="fas fa-bars"></i>
-                </button>
-                <div class="ms-auto d-flex align-items-center">
-                    <div class="me-3">
-                        <span class="text-muted">Last updated:</span>
-                        <span class="fw-bold" id="last-updated">{{ datetime.now().strftime('%H:%M') }}</span>
-                    </div>
-                    <div class="dropdown">
-                        <button class="btn btn-link text-dark dropdown-toggle" type="button" id="notificationDropdown"
-                            data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-bell"></i>
-                            <span class="badge bg-danger">3</span>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown">
-                            <li>
-                                <h6 class="dropdown-header">Notifications</h6>
-                            </li>
-                            <li><a class="dropdown-item" href="#">New data available</a></li>
-                            <li><a class="dropdown-item" href="#">System update scheduled</a></li>
-                            <li><a class="dropdown-item" href="#">Weekly report ready</a></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </nav>
-
-        <!-- Page Content -->
-        <div class="content p-4">
-            {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-            {% for category, message in messages %}
-            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-            {% endfor %}
-            {% endif %}
-            {% endwith %}
-
-            {% block content %}{% endblock %}
-        </div>
-
-        <!-- Footer -->
-        <footer class="footer mt-auto py-3 bg-light">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-6">
-                        <span class="text-muted">© 2023 FPY Dashboard. All rights reserved.</span>
-                    </div>
-                    <div class="col-md-6 text-end">
-                        <span class="text-muted">Version 2.0</span>
-                    </div>
-                </div>
-            </div>
-        </footer>
-    </div>
-
-    <!-- Bootstrap JS Bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-
-    <!-- DataTables JS -->
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.bootstrap5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
-
-    <!-- Custom JS -->
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-
-    {% block scripts %}{% endblock %}
-    
-</body>
-
-</html>
+	<!DOCTYPE html>
+	<html lang="en">
+	<head>
+	    <meta charset="UTF-8">
+	    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	    <title>FPY Dashboard - Modern Analytics Platform</title>
+	    <meta name="description" content="Advanced First Pass Yield Dashboard for Manufacturing Analytics">
+	    <!-- Favicon -->
+	    <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+	    <!-- Bootstrap CSS -->
+	    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+	    <!-- Font Awesome -->
+	    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+	    <!-- DataTables CSS -->
+	    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+	    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
+	    <!-- Custom CSS -->
+	    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+	    <!-- Chart.js -->
+	    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	    <style>
+	        /* Shutdown button styles */
+	        .shutdown-btn {
+	            position: fixed;
+	            bottom: 20px;
+	            right: 20px;
+	            width: 50px;
+	            height: 50px;
+	            border-radius: 50%;
+	            background-color: #dc3545;
+	            color: white;
+	            border: none;
+	            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+	            display: flex;
+	            align-items: center;
+	            justify-content: center;
+	            cursor: pointer;
+	            z-index: 9999;
+	            transition: all 0.3s ease;
+	            font-size: 20px;
+	        }
+	        .shutdown-btn:hover {
+	            background-color: #c82333;
+	            transform: scale(1.1);
+	        }
+	        .shutdown-btn:active {
+	            transform: scale(0.95);
+	        }
+	        /* Confirmation dialog styles */
+	        .confirm-dialog-overlay {
+	            position: fixed;
+	            top: 0;
+	            left: 0;
+	            width: 100%;
+	            height: 100%;
+	            background-color: rgba(0, 0, 0, 0.5);
+	            display: none;
+	            align-items: center;
+	            justify-content: center;
+	            z-index: 10000;
+	        }
+	        .confirm-dialog {
+	            background-color: white;
+	            padding: 25px;
+	            border-radius: 8px;
+	            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+	            max-width: 400px;
+	            width: 90%;
+	            animation: slideIn 0.3s ease;
+	        }
+	        @keyframes slideIn {
+	            from {
+	                transform: translateY(-50px);
+	                opacity: 0;
+	            }
+	            to {
+	                transform: translateY(0);
+	                opacity: 1;
+	            }
+	        }
+	        .confirm-dialog h5 {
+	            margin-top: 0;
+	            color: #dc3545;
+	        }
+	        .confirm-dialog-buttons {
+	            display: flex;
+	            justify-content: flex-end;
+	            gap: 10px;
+	            margin-top: 20px;
+	        }
+	        /* Notification toast styles */
+	        .notification-toast {
+	            position: fixed;
+	            top: 20px;
+	            right: 20px;
+	            background-color: #28a745;
+	            color: white;
+	            padding: 15px 20px;
+	            border-radius: 4px;
+	            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+	            display: none;
+	            z-index: 10001;
+	            animation: slideInRight 0.3s ease;
+	            max-width: 350px;
+	        }
+	        @keyframes slideInRight {
+	            from {
+	                transform: translateX(100%);
+	                opacity: 0;
+	            }
+	            to {
+	                transform: translateX(0);
+	                opacity: 1;
+	            }
+	        }
+	        .notification-toast.error {
+	            background-color: #dc3545;
+	        }
+	        .notification-toast.warning {
+	            background-color: #ffc107;
+	            color: #212529;
+	        }
+	        /* Manual shutdown instructions */
+	        .manual-shutdown {
+	            position: fixed;
+	            top: 0;
+	            left: 0;
+	            width: 100%;
+	            height: 100%;
+	            background-color: rgba(0, 0, 0, 0.8);
+	            display: none;
+	            align-items: center;
+	            justify-content: center;
+	            z-index: 10002;
+	            color: white;
+	            text-align: center;
+	            padding: 20px;
+	        }
+	        .manual-shutdown-content {
+	            background-color: #343a40;
+	            padding: 30px;
+	            border-radius: 8px;
+	            max-width: 500px;
+	            width: 90%;
+	        }
+	        .manual-shutdown h3 {
+	            margin-top: 0;
+	            color: #dc3545;
+	        }
+	        .manual-shutdown ol {
+	            text-align: left;
+	            margin-top: 20px;
+	        }
+	        .manual-shutdown button {
+	            margin-top: 20px;
+	        }
+	    </style>
+	    {% block head %}{% endblock %}
+	</head>
+	<body>
+	    <!-- Sidebar -->
+	    <div class="sidebar">
+	        <div class="sidebar-header">
+	            <h3><i class="fas fa-industry me-2"></i>FPY Dashboard</h3>
+	        </div>
+	        <div class="sidebar-menu">
+	            <a href="{{ url_for('dashboard.home') }}"
+	                class="menu-item {% if request.endpoint == 'dashboard.home' %}active{% endif %}">
+	                <i class="fas fa-home me-2"></i> Home
+	            </a>
+	            <a href="{{ url_for('dashboard.auto_data') }}"
+	                class="menu-item {% if request.endpoint == 'dashboard.auto_data' %}active{% endif %}">
+	                <i class="fas fa-bolt me-2"></i> Live RTY Data
+	            </a>
+	            <a href="{{ url_for('dashboard.project_specific') }}"
+	                class="menu-item {% if request.endpoint == 'dashboard.project_specific' %}active{% endif %}">
+	                <i class="fas fa-project-diagram me-2"></i> Single Model Live ANA
+	            </a>
+	            <a href="{{ url_for('dashboard.models_rty_summary') }}"
+	                class="menu-item {% if request.endpoint == 'dashboard.models_rty_summary' %}active{% endif %}">
+	                <i class="fas fa-cogs me-2"></i> All Models Live ANA
+	            </a>
+	            <a href="{{ url_for('dashboard.model_specific') }}"
+	                class="menu-item {% if request.endpoint == 'dashboard.model_specific' %}active{% endif %}">
+	                <i class="fas fa-cogs me-2"></i> Model Wise ANA
+	            </a>
+	            <a href="{{ url_for('dashboard.model_analysis_date_range') }}"
+	                class="menu-item {% if request.endpoint == 'dashboard.model_analysis_date_range' %}active{% endif %}">
+	                <i class="fas fa-cogs me-2"></i> Model ANA By Range
+	            </a>
+	        </div>
+	        <div class="sidebar-footer">
+	            <div class="user-info">
+	                <div class="user-avatar">
+	                    <i class="fas fa-user-circle"></i>
+	                </div>
+	                <div class="user-details">
+	                    <div class="user-name">{{ current_user.id }}</div>
+	                    <div class="user-role">Analyst</div>
+	                </div>
+	            </div>
+	            <a href="{{ url_for('auth.logout') }}" class="logout-btn">
+	                <i class="fas fa-sign-out-alt me-2"></i> Logout
+	            </a>
+	        </div>
+	    </div>
+	    <!-- Add this to your navigation bar in base.html -->
+	    <ul class="navbar-nav ms-auto">
+	        {% if current_user.is_authenticated %}
+	            <li class="nav-item dropdown">
+	                <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+	                    <i class="fas fa-user fa-fw"></i> {{ current_user.id }}
+	                </a>
+	                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+	                    <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt fa-sm fa-fw me-2 text-gray-400"></i>Logout</a></li>
+	                </ul>
+	            </li>
+	        {% else %}
+	            <li class="nav-item">
+	                <a class="nav-link" href="{{ url_for('auth.login') }}">
+	                    <i class="fas fa-sign-in-alt"></i> Login
+	                </a>
+	            </li>
+	        {% endif %}
+	    </ul>
+	    <!-- Main Content -->
+	    <div class="main-content">
+	        <!-- Top Navigation -->
+	        <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+	            <div class="container-fluid">
+	                <button class="btn btn-link d-md-none" id="sidebar-toggle">
+	                    <i class="fas fa-bars"></i>
+	                </button>
+	                <div class="ms-auto d-flex align-items-center">
+	                    <div class="me-3">
+	                        <span class="text-muted">Last updated:</span>
+	                        <span class="fw-bold" id="last-updated">{{ datetime.now().strftime('%H:%M') }}</span>
+	                    </div>
+	                    <div class="dropdown">
+	                        <button class="btn btn-link text-dark dropdown-toggle" type="button" id="notificationDropdown"
+	                            data-bs-toggle="dropdown" aria-expanded="false">
+	                            <i class="fas fa-bell"></i>
+	                            <span class="badge bg-danger">3</span>
+	                        </button>
+	                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown">
+	                            <li>
+	                                <h6 class="dropdown-header">Notifications</h6>
+	                            </li>
+	                            <li><a class="dropdown-item" href="#">New data available</a></li>
+	                            <li><a class="dropdown-item" href="#">System update scheduled</a></li>
+	                            <li><a class="dropdown-item" href="#">Weekly report ready</a></li>
+	                        </ul>
+	                    </div>
+	                </div>
+	            </div>
+	        </nav>
+	        <!-- Page Content -->
+	        <div class="content p-4">
+	            {% with messages = get_flashed_messages(with_categories=true) %}
+	            {% if messages %}
+	            {% for category, message in messages %}
+	            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+	                {{ message }}
+	                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+	            </div>
+	            {% endfor %}
+	            {% endif %}
+	            {% endwith %}
+	            {% block content %}{% endblock %}
+	        </div>
+	        <!-- Footer -->
+	        <footer class="footer mt-auto py-3 bg-light">
+	            <div class="container">
+	                <div class="row">
+	                    <div class="col-md-6">
+	                        <span class="text-muted">© 2023 FPY Dashboard. All rights reserved.</span>
+	                    </div>
+	                    <div class="col-md-6 text-end">
+	                        <span class="text-muted">Version 2.0</span>
+	                    </div>
+	                </div>
+	            </div>
+	        </footer>
+	    </div>
+	    <!-- Shutdown Button -->
+	    <button class="shutdown-btn" id="shutdown-btn" title="Shutdown Server">
+	        <i class="fas fa-power-off"></i>
+	    </button>
+	    <!-- Confirmation Dialog -->
+	    <div class="confirm-dialog-overlay" id="confirm-dialog-overlay">
+	        <div class="confirm-dialog">
+	            <h5><i class="fas fa-exclamation-triangle me-2"></i> Confirm Shutdown</h5>
+	            <p>Are you sure you want to shutdown the server? This will close the application.</p>
+	            <div class="confirm-dialog-buttons">
+	                <button type="button" class="btn btn-secondary" id="cancel-shutdown">Cancel</button>
+	                <button type="button" class="btn btn-danger" id="confirm-shutdown">
+	                    <i class="fas fa-power-off me-1"></i> Shutdown
+	                </button>
+	            </div>
+	        </div>
+	    </div>
+	    <!-- Notification Toast -->
+	    <div class="notification-toast" id="notification-toast">
+	        <i class="fas fa-check-circle me-2"></i>
+	        <span id="notification-message">Server is shutting down...</span>
+	    </div>
+	    <!-- Manual Shutdown Instructions -->
+	    <div class="manual-shutdown" id="manual-shutdown">
+	        <div class="manual-shutdown-content">
+	            <h3><i class="fas fa-info-circle me-2"></i> Manual Shutdown Required</h3>
+	            <p>The server has been instructed to shut down, but automatic shutdown is not available in this environment.</p>
+	            <p>Please close the application manually using one of these methods:</p>
+	            <ol>
+	                <li><strong>Close this window/tab</strong> - Click the X button on your browser window</li>
+	                <li><strong>Use Task Manager</strong> - Press Ctrl+Shift+Esc, find the application, and end the task</li>
+	                <li><strong>Use Command Line/Terminal</strong> - Find the process ID and terminate it</li>
+	            </ol>
+	            <button class="btn btn-primary" id="close-instructions">I Understand</button>
+	        </div>
+	    </div>
+	    <!-- Bootstrap JS Bundle -->
+	    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+	    <!-- jQuery -->
+	    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+	    <!-- DataTables JS -->
+	    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+	    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+	    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+	    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.bootstrap5.min.js"></script>
+	    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+	    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+	    <!-- Custom JS -->
+	    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+	    <script>
+	        document.addEventListener('DOMContentLoaded', function() {
+	            // Get elements
+	            const shutdownBtn = document.getElementById('shutdown-btn');
+	            const confirmDialogOverlay = document.getElementById('confirm-dialog-overlay');
+	            const cancelShutdown = document.getElementById('cancel-shutdown');
+	            const confirmShutdown = document.getElementById('confirm-shutdown');
+	            const notificationToast = document.getElementById('notification-toast');
+	            const notificationMessage = document.getElementById('notification-message');
+	            const manualShutdown = document.getElementById('manual-shutdown');
+	            const closeInstructions = document.getElementById('close-instructions');
+	            // Show confirmation dialog when shutdown button is clicked
+	            shutdownBtn.addEventListener('click', function() {
+	                confirmDialogOverlay.style.display = 'flex';
+	            });
+	            // Hide confirmation dialog when cancel is clicked
+	            cancelShutdown.addEventListener('click', function() {
+	                confirmDialogOverlay.style.display = 'none';
+	            });
+	            // Shutdown server when confirm is clicked
+	            confirmShutdown.addEventListener('click', function() {
+	                // Show loading state
+	                confirmShutdown.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Shutting down...';
+	                confirmShutdown.disabled = true;
+	                // Make POST request to shutdown endpoint
+	                fetch('/shutdown', {
+	                    method: 'POST',
+	                    headers: {
+	                        'Content-Type': 'application/json'
+	                    }
+	                })
+	                .then(response => response.json())
+	                .then(data => {
+	                    if (data.success) {
+	                        // Show success notification
+	                        notificationMessage.textContent = data.message;
+	                        notificationToast.classList.remove('error');
+	                        notificationToast.classList.add('success');
+	                        notificationToast.style.display = 'block';
+	                        // Check if manual close is required
+	                        if (data.manual_close) {
+	                            // Show manual shutdown instructions after a delay
+	                            setTimeout(() => {
+	                                notificationToast.style.display = 'none';
+	                                manualShutdown.style.display = 'flex';
+	                            }, 3000);
+	                        } else {
+	                            // Try to close window after a delay
+	                            setTimeout(() => {
+	                                window.close();
+	                                // If window doesn't close, show manual instructions
+	                                setTimeout(() => {
+	                                    manualShutdown.style.display = 'flex';
+	                                }, 1000);
+	                            }, 3000);
+	                        }
+	                    } else {
+	                        // Show error notification
+	                        notificationMessage.textContent = data.message;
+	                        notificationToast.classList.remove('success');
+	                        notificationToast.classList.add('error');
+	                        notificationToast.style.display = 'block';
+	                        // Reset button state
+	                        confirmShutdown.innerHTML = '<i class="fas fa-power-off me-1"></i> Shutdown';
+	                        confirmShutdown.disabled = false;
+	                    }
+	                })
+	                .catch(error => {
+	                    console.error('Error:', error);
+	                    // Show error notification
+	                    notificationMessage.textContent = 'Network error: ' + error.message;
+	                    notificationToast.classList.remove('success');
+	                    notificationToast.classList.add('error');
+	                    notificationToast.style.display = 'block';
+	                    // Reset button state
+	                    confirmShutdown.innerHTML = '<i class="fas fa-power-off me-1"></i> Shutdown';
+	                    confirmShutdown.disabled = false;
+	                });
+	                // Hide confirmation dialog
+	                confirmDialogOverlay.style.display = 'none';
+	            });
+	            // Hide dialog when clicking outside of it
+	            confirmDialogOverlay.addEventListener('click', function(e) {
+	                if (e.target === confirmDialogOverlay) {
+	                    confirmDialogOverlay.style.display = 'none';
+	                }
+	            });
+	            // Hide notification after 5 seconds
+	            notificationToast.addEventListener('click', function() {
+	                notificationToast.style.display = 'none';
+	            });
+	            // Close manual shutdown instructions
+	            closeInstructions.addEventListener('click', function() {
+	                manualShutdown.style.display = 'none';
+	            });
+	        });
+	    </script>
+	    {% block scripts %}{% endblock %}
+	</body>
+	</html>
